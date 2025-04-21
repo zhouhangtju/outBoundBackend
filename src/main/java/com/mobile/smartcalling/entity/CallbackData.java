@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class CallbackData {
 
@@ -21,9 +23,20 @@ public class CallbackData {
 
     private String comment;
 
-    private JSONArray voice_record;
+    private List<VoiceRecord> voice_record;
 
-    private JSONArray sms_record;
+    private SmsRecord sms_record;
 
-    private JSONObject task_status;
+    private InputParams task_status;
+
+    private InputParams input_params;
+
+
+    public String getTag_code(){
+        return tag_code;
+    }
+
+    public void setTag_code(){
+        this.tag_code = tag_code;
+    }
 }

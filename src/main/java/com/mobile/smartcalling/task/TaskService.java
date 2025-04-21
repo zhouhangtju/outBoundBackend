@@ -3,9 +3,12 @@ package com.mobile.smartcalling.task;
 
 
 import com.mobile.smartcalling.dto.UploadDataList;
+import com.mobile.smartcalling.entity.UploadData;
 import com.mobile.smartcalling.service.IReadCSVService;
+import com.mobile.smartcalling.service.UploadCSVService;
 import com.mobile.smartcalling.service.UploadDataService;
 import com.mobile.smartcalling.util.DbUtil;
+import com.mobile.smartcalling.util.FtpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -34,31 +35,61 @@ public class TaskService {
     @Autowired
     private DbUtil dbUtil;
 
+    @Autowired
+    private UploadCSVService uploadCSVService;
 
 
     @Async("taskExecutor")
     @Scheduled(cron = "0 0 2 * * ? ") //每天凌晨2点执行
     //@Scheduled(cron = "0 0/1 * * * ? ")         //1分钟执行一次 测试
     public void insertBatchDataTask() {
-        log.info("执行批量导入数据定时任务");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = new Date();
-        Date time = DateUtils.addDays(date,-1);
-        String ds = sdf.format(time);
-        String dd = ds.replace("-", "");
-        acquireUploadData(dd);
+        log.info("====执行批量导入数据定时任务===");
+        acquireUploadData();
     }
 
-    private void acquireUploadData(String dd) {
-        UploadDataList uploadDataList = new UploadDataList();
+    @Async("taskExecutor")
+    @Scheduled(cron = "0 0 7 * * ? ") //每天7点执行
+    //@Scheduled(cron = "0 0/1 * * * ? ")         //1分钟执行一次 测试
+    public void getCsv() {
+        log.info("====执行获取外呼清单文件定时任务===");
+        Map<String, Object> map = new HashMap<>();
+        String connectionString = "ftp://dcpp:D8is_F7n61#15@10.76.148.39:21";
+        map.put("userName","dcpp");
+        map.put("password","D8is_F7n61#15");
+        map.put("Path","/data1/dcpp/ZXAICL");
+        ArrayList<String> files = new ArrayList<>();
+        //TODO 从你的参数中提取文件名
+        files.add("文件名");
+        map.put("files",files);
+
+        try {
+            FtpUtil.downLoad(map);
+        } catch (Exception e) {
+            log.info("",e);
+        }
+    }
+
+    @Async("taskExecutor")
+    @Scheduled(cron = "0 0 7 * * ? ") //每天7点执行
+    //@Scheduled(cron = "0 0/1 * * * ? ")         //1分钟执行一次 测试
+    public void uploadCsv() {
+        log.info("====执行上传外呼结果文件定时任务===");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        Date time = DateUtils.addDays(date,1);
+        String ds = sdf.format(time);
+        String dd = ds.replace("-", "");
+        uploadCSVService.uploadCSV(dd);
+
+    }
+
+    public void acquireUploadData() {
         //数据文件存放路径
         String csvPath = readCSVService.getCSVPath();
-        //TODO 读取解析文件数据 生成数据集合 做入库或者调用接口准备
-
-
-        //调用上传数据接口 一次两千条数据
-        uploadDataService.UploadData(uploadDataList);
-
+        //TODO 填写服务器文件路径
+        //String csvPath = "本机服务器文件路径";
+        log.info("获取到文件文件路径{}",csvPath);
+        readCSVService.getUploadDataList(csvPath);
     }
 
     @Async("taskExecutor")
@@ -76,9 +107,7 @@ public class TaskService {
     }
 
     public void acquireCreateDs(String dd){
-        dbUtil.addPartition("broadband_complaints", "p"+dd, dd);
-        dbUtil.addPartition("bp_no_real_time_performance_main", "p"+dd, dd);
-        dbUtil.addPartition("alarm_data", "p"+dd, dd);
+        dbUtil.addPartition("satisfy_result", "p"+dd, dd);
     }
 
     @Async("taskExecutor")
@@ -100,9 +129,7 @@ public class TaskService {
 
     public void acquireDelOldDs(String dd){
         log.info("获取到将要删除分区的dd{}",dd);
-        dbUtil.delPartition("broadband_complaints", "p"+dd);
-        dbUtil.delPartition("bp_no_real_time_performance_main", "p"+dd);
-        dbUtil.delPartition("alarm_data", "p"+dd);
+        dbUtil.delPartition("satisfy_result", "p"+dd);
     }
 
 

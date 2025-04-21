@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <contextName>zhenghaoLog</contextName>
+    <contextName>remoteLog</contextName>
 
     <!-- 日志的输出目录 -->
     <property name="log.path" value="logs" />
@@ -92,7 +92,7 @@
     </appender>
 
     <!-- mybatis-plus 操作数据库包所在路径 -->
-    <logger name="com.demos.dao" level="info"/>
+    <logger name="com.mobile.smartcalling.dao" level="info"/>
 
     <root level="info">
         <appender-ref ref="CONSOLE" />

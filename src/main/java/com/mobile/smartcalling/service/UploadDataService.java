@@ -3,5 +3,5 @@ package com.mobile.smartcalling.service;
 import com.mobile.smartcalling.dto.UploadDataList;
 
 public interface UploadDataService {
-    String UploadData(UploadDataList uploadDataList);
+    void UploadData(UploadDataList uploadDataList,String taskUUID,String xAccessKey,String openapiSecret);
 }

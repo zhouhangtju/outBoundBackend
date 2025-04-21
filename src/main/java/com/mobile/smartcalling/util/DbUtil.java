@@ -34,27 +34,6 @@ public class DbUtil {
         dbHandle(ddl);
     }
 
-    public void AaddPartition(String table, String startDateRange1, String endDateRange1, String startDateRange2, String endDateRange2) {
-        String partitionName = String.format("p%s_%s_p%s_%s",
-                startDateRange1.replace("-", ""),
-                endDateRange1.replace("-", ""),
-                startDateRange2.replace("-", ""),
-                endDateRange2.replace("-", ""));
-
-        // 假设分区的范围是基于analysis_start_time1字段，并且您想要的分区是根据startDateRange1到endDateRange1
-        // 您需要确保这些日期是analysis_start_time1列可以接受的范围
-        String ddl = String.format(
-                "CREATE TABLE IF NOT EXISTS %s PARTITION OF %s FOR VALUES FROM ('%s') TO ('%s')",
-                partitionName, table, startDateRange1, endDateRange1
-        );
-
-        dbHandle(ddl); // dbHandle 是执行SQL的方法
-    }
-
-    public void DdelPartition(String partition) {
-        String ddl = String.format("DROP TABLE IF EXISTS %s", partition);
-        dbHandle(ddl); // dbHandle 是执行SQL的方法
-    }
     public void delPartition(String table, String ds) {
         // 执行DDL语句创建分区
         //String ddl = String.format("alter table %s DROP PARTITION if exists %s;", table, ds);
@@ -96,29 +75,4 @@ public class DbUtil {
             }
         }
     }
-
-    public void selectIntoPmlte() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        String neeTable = "pm_lte_" + sdf.format(new Date());
-        String ori = "select * into %s from pm_lte where cgi in ('460-00-183792-193','460-00-325793-130','460-00-413349-1'," +
-                "'460-00-744860-7','460-00-185555-196','460-00-318933-139','460-00-186716-195','460-00-762517-1'," +
-                "'460-00-769065-1','460-00-722618-9')";
-        String sql = String.format(ori, neeTable);
-        log.info("===select into sql: {}",sql);
-        dbHandle(sql);
-        log.info("===select into pm_lte success");
-    }
-
-
-    /**
-     * 分区数据拷贝
-     */
-    public void copyDataForPartition(String table, String from, String to) {
-        String toTable = table + "_1_prt_p" + to;
-        String sql = String.format("insert into %s select * from %s where ds = '%s'", toTable, table, from);
-        log.info("===sql: {}", sql);
-        dbHandle(sql);
-    }
-
-
 }

@@ -3,7 +3,11 @@ package com.mobile.smartcalling.dto;
 import lombok.Data;
 
 @Data
-public class UploadData {
+public class PerformanceInfo {
+    private String city;
+
     private String phoneNum;
-    private String customerName;
+
+    private String callScene;
+
 }
