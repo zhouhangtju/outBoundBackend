@@ -5,7 +5,7 @@ server:
       max: 200
       min-spare: 30
     connection-timeout: 5000ms
-  port: 8090
+  port: 8091
   servlet:
     context-path: /
 
@@ -15,9 +15,9 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://localhost:3306/cmcc?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+      url: jdbc:mysql://localhost:3306/smartcall?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
       username: root
-      password: jkzD@QWK63
+      password: root
       initial-size: 8
       max-active: 16
       min-idle: 8
@@ -25,16 +25,3 @@ spring:
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
-
-  #Redis???
-  redis:
-    database: 0
-    host: 127.0.0.1
-    port: 6379
-    password:
-    jedis:
-      pool:
-        max-active: 1000
-        max-wait: -1ms
-        max-idle: 16
-        min-idle: 8

@@ -5,7 +5,7 @@ server:
       max: 200
       min-spare: 30
     connection-timeout: 5000ms
-  port: 8080
+  port: 8091
   servlet:
     context-path: /
 
@@ -27,5 +27,3 @@ spring:
       test-on-borrow: false
       test-on-return: false
 
-  elasticsearch:
-    uris: http://127.0.0.1:9200
