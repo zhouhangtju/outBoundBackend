@@ -1,49 +1,37 @@
 package com.mobile.smartcalling.controller;
 
-import com.mobile.smartcalling.dao.ConfigInfoDao;
-import com.mobile.smartcalling.dto.UploadDataList;
-import com.mobile.smartcalling.entity.ConfigInfo;
-import com.mobile.smartcalling.entity.UploadData;
+import com.mobile.smartcalling.dao.TaskPhoneDao;
+import com.mobile.smartcalling.entity.TaskPhone;
 import com.mobile.smartcalling.service.IReadCSVService;
 import com.mobile.smartcalling.service.UploadCSVService;
 import com.mobile.smartcalling.service.UploadDataService;
-import com.mobile.smartcalling.task.TaskService;
 import com.mobile.smartcalling.util.FtpUtil;
 import com.mobile.smartcalling.util.SftpUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @RequestMapping("/test")
 @Slf4j
+@CrossOrigin
 @Api(value = "测试接口", tags = {"测试接口"})
 public class DemoController {
     @Autowired
     private RestTemplate restTemplate;
 
     @Autowired
-    private TaskService taskService;
+    private IReadCSVService readCSVService;
 
     @Autowired
-    private IReadCSVService readCSVService;
+    private TaskPhoneDao taskPhoneDao;
 
     @Autowired
     private UploadCSVService uploadCSVService;
@@ -51,65 +39,71 @@ public class DemoController {
     @Autowired
     private UploadDataService uploadDataService;
 
-    @Autowired
-    private ConfigInfoDao configInfoDao;
-
-
-    @GetMapping("/updateConfigInfo")
-    @ApiOperation("修改配置信息中的xAccessKey和openapiSecret")
-    public void updateConfigInfo(@RequestParam("xAccessKey")String xAccessKey,@RequestParam("openapiSecret")String openapiSecret,
-                                @RequestParam("taskUUID") String taskUUID){
-        ConfigInfo configInfo = new ConfigInfo();
-        configInfo.setOpenApiSecret(openapiSecret);
-        configInfo.setXAccessKey(xAccessKey);
-        configInfo.setTaskUuid(taskUUID);
-        configInfo.setId(1);
-        configInfoDao.updateById(configInfo);
-    }
-
-    @GetMapping("/getCsv")
-    @ApiOperation("测试从服务器下载csv文件,返回文件存储地址")
-    public void getCsv(){
-        String csvPath = readCSVService.getCSVPath();
-        log.info("获取到csvPath{}",csvPath);
-    }
-
-    @GetMapping("/uploadData")
-    @ApiOperation("测试调用外呼系统接口")
-    public void uploadData(String phoneNum){
-        UploadDataList dataList = new UploadDataList();
-        UploadData uploadData = new UploadData();
-        uploadData.setPhoneNum(phoneNum);
-        ArrayList<UploadData> list = new ArrayList<>();
-        list.add(uploadData);
-        dataList.setUploadDataList(list);
-        ConfigInfo configInfo = configInfoDao.selectById(1);
-        String xAccessKey = configInfo.getXAccessKey();
-        String openapiSecret =  configInfo.getOpenApiSecret();
-        String taskUUID = configInfo.getTaskUuid();
-        uploadDataService.UploadData(dataList,taskUUID,xAccessKey,openapiSecret);
-    }
-
+//    @Autowired
+//    private ConfigInfoDao configInfoDao;
+//
+//
+//    @GetMapping("/updateConfigInfo")
+//    @ApiOperation("修改配置信息中的xAccessKey和openapiSecret")
+//    public void updateConfigInfo(@RequestParam("xAccessKey")String xAccessKey,@RequestParam("openapiSecret")String openapiSecret,
+//                                @RequestParam("taskUUID") String taskUUID){
+//        ConfigInfo configInfo = new ConfigInfo();
+//        configInfo.setOpenApiSecret(openapiSecret);
+//        configInfo.setXAccessKey(xAccessKey);
+//        configInfo.setTaskUuid(taskUUID);
+//        configInfo.setId(1);
+//        configInfoDao.updateById(configInfo);
+//    }
+//
+//    @GetMapping("/getCsv")
+//    @ApiOperation("测试从服务器下载csv文件,返回文件存储地址")
+//    public void getCsv(){
+//        String csvPath = readCSVService.getCSVPath();
+//        log.info("获取到csvPath{}",csvPath);
+//    }
+//
+//    @GetMapping("/uploadData")
+//    @ApiOperation("测试调用外呼系统接口")
+//    public void uploadData(String phoneNum){
+//        UploadDataList dataList = new UploadDataList();
+//        UploadData uploadData = new UploadData();
+//        uploadData.setPhoneNum(phoneNum);
+//        ArrayList<UploadData> list = new ArrayList<>();
+//        list.add(uploadData);
+//        dataList.setUploadDataList(list);
+//        ConfigInfo configInfo = configInfoDao.selectById(1);
+//        String xAccessKey = configInfo.getXAccessKey();
+//        String openapiSecret =  configInfo.getOpenApiSecret();
+//        String taskUUID = configInfo.getTaskUuid();
+//        uploadDataService.UploadData(dataList,taskUUID,xAccessKey,openapiSecret);
+//    }
+//
     @GetMapping("/getCsvData")
     @ApiOperation("测试读取文件数据获取数据并入库接口")
     public void getCsvData(String filePath){
-        readCSVService.getUploadDataList(filePath);
+        List<String> strings = readCSVService.readCsv(filePath);
+        for (int i = 0; i < strings.size(); i++) {
+            TaskPhone taskPhone = new TaskPhone();
+            taskPhone.setPhone(strings.get(i));
+            taskPhone.setTaskName("装机单竣工回访-绍兴");
+            taskPhoneDao.insert(taskPhone);
+        }
     }
-
-
-    @GetMapping("/createDS")
-    @ApiOperation("手动创建指定分区")
-    public void createdDS(@RequestParam(value = "dd") String dd) {
-        //dd为  20241219   格式
-        taskService.acquireCreateDs(dd);
-    }
-
-    @GetMapping("/uploadCsv")
-    @ApiOperation("手动上传指定天的文件")
-    public void uploadCsv(@RequestParam(value = "dd") String dd) {
-        //dd为  20241219   格式
-        uploadCSVService.uploadCSV(dd);
-    }
+//
+//
+//    @GetMapping("/createDS")
+//    @ApiOperation("手动创建指定分区")
+//    public void createdDS(@RequestParam(value = "dd") String dd) {
+//        //dd为  20241219   格式
+//        taskService.acquireCreateDs(dd);
+//    }
+//
+//    @GetMapping("/uploadCsv")
+//    @ApiOperation("手动上传指定天的文件")
+//    public void uploadCsv(@RequestParam(value = "dd") String dd) {
+//        //dd为  20241219   格式
+//        uploadCSVService.uploadCSV(dd);
+//    }
 
 
     @GetMapping("/SftpDownload")
@@ -141,22 +135,49 @@ public class DemoController {
         }
     }
 
-    @GetMapping("/testFtp")
+
+
+    @GetMapping("/testDownloadFtp")
     @ApiOperation("测试ftp拉取文件")
-    public void testFtp() {
+    public void testDownloadFtp() {
+        log.info("====执行拉取昨天获取外呼清单文件定时任务===");
         Map<String, Object> map = new HashMap<>();
         String connectionString = "ftp://dcpp:D8is_F7n61#15@10.76.148.39:21";
+        map.put("ConnectionString",connectionString);
         map.put("userName","dcpp");
         map.put("password","D8is_F7n61#15");
-        map.put("Path","/data1/dcpp/ZXAICL");
+        map.put("Path","/data1/dcpp/ZXAICL/");
         ArrayList<String> files = new ArrayList<>();
         //TODO 从你的参数中提取文件名
-        files.add("文件名");
+//        2025-04-14_OutboundCallList
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = new Date();
+        Date time = DateUtils.addDays(date,-1);
+        String ds = sdf.format(time);
+        log.info("文件名字===={}_OutboundCallList",ds);
+        files.add("2025-06-27_OutboundCallList.csv");
         map.put("files",files);
-        FtpUtil.downLoad(map);
-
-        log.info("=====123");
+        log.info(map.toString());
+        try {
+            FtpUtil.downLoad(map);
+        } catch (Exception e) {
+            log.info("",e);
+        }
     }
+
+    @GetMapping("/testUploadFtp")
+    @ApiOperation("测试ftp上传文件")
+    public void testUploadFtp() {
+        FtpUtil.upLoad("10.76.148.39",21,"dcpp","D8is_F7n61#15","usr/local/remotecall/files/test.csv","/data1/dcpp/ZXAICL");
+    }
+
+//    @GetMapping("/testCall")
+//    @ApiOperation("测试读取文化批量外呼")
+//    public void testCall() {
+//        readCSVService.getUploadDataList("/usr/local/remotecall/files/2025-06-27_OutboundCallList.csv");
+//    }
+
+    
 }
 
 

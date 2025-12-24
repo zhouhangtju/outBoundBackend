@@ -30,7 +30,7 @@ public class FtpUtil {
             String username = (String) map.get("userName"); // FTP登录用户名
             String password = (String) map.get("password"); // FTP登录密码
             String remoteDir = (String) map.get("Path"); // 远程路径
-            String localPath = "/opt/massive/logs/"; // 本地文件保存路径
+            String localPath = "/usr/local/remotecall/files/"; // 本地文件保存路径
             List<Object> files = (List)map.get("files");  //文件名字
 
             SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -47,29 +47,29 @@ public class FtpUtil {
             ftpClient.setSoTimeout(1000*300);
             //这句代码进行设置缓冲大小,这样的话就比原来快很多了
             ftpClient.setBufferSize(100000);
+            boolean connected = ftpClient.isConnected();
+            log.info("ftp连接情况{}",connected);
 
-            for (Object obj: files) {
-                Map<String, Object> file = (Map<String, Object>) obj;
-                String dataStartTime = (String) file.get("dataStartTime");
-                String ds = sdf2.format(sdf1.parse(dataStartTime));
-                String fileName = (String) file.get("fileName");
+//                String dataStartTime = (String) file.get("dataStartTime");
+//                String ds = sdf2.format(sdf1.parse(dataStartTime));
+                String fileName = String.valueOf(files.get(0));
                 OutputStream outputStream = new FileOutputStream(localPath + fileName);
                 boolean success = ftpClient.retrieveFile(remoteDir + fileName, outputStream);
                 outputStream.close();
 
                 if (success) {
                     log.info("File {} downloaded successfully.", (remoteDir + fileName));
-                    List<String> dateStr = new ArrayList<>(2);
-                    dateStr.add(ds);
-                    dateStr.add(dataStartTime);
-                    data.put(localPath + fileName, dateStr);
+//                    List<String> dateStr = new ArrayList<>(2);
+////                    dateStr.add(ds);
+////                    dateStr.add(dataStartTime);
+//                    data.put(localPath + fileName, dateStr);
                 } else {
                     log.error("File {} download failed.", (remoteDir + fileName));
                 }
-            }
+
 
         } catch (Exception e) {
-            log.error("get 5G scheme data error ", e);
+            log.error("{}", e);
         } finally {
             try {
                 if (ftpClient.isConnected()) {

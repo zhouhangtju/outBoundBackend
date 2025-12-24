@@ -9,6 +9,12 @@ server:
   servlet:
     context-path: /
 
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+
+
 spring:
   #MySQL???
   datasource:

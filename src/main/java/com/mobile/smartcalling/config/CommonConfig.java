@@ -6,7 +6,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Configuration
-@MapperScan(basePackages = "com.mobile.business.dao")
 @Slf4j
 public class CommonConfig {
 

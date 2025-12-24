@@ -5,8 +5,9 @@ import com.mobile.smartcalling.dto.UploadDataList;
 import java.util.List;
 
 public interface IReadCSVService {
+    List<String> readCsv(String filePath);
 
-     String getCSVPath();
+    //  String getCSVPath();
 
-     void getUploadDataList(String filePath);
+   //  void getUploadDataList(String filePath);
 }

@@ -10,4 +10,6 @@ public class PerformanceInfo {
 
     private String callScene;
 
+    private String order;
+
 }
