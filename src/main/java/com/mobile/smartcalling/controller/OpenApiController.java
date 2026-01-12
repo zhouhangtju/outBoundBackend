@@ -12,12 +12,14 @@ import com.mobile.smartcalling.entity.TaskPhone;
 import com.mobile.smartcalling.entity.UploadData;
 import com.mobile.smartcalling.service.ICallbackSevice;
 import com.mobile.smartcalling.service.UploadDataService;
+import com.mobile.smartcalling.util.RedisUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,6 +40,9 @@ public class OpenApiController {
 
     @Autowired
     private TaskPhoneDao taskPhoneDao;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
 
 
@@ -81,13 +86,27 @@ public CallBackResult useCallBack(@RequestBody PerformanceInfo performanceInfo) 
                 uploadDataService.newUploadData(newResultRequest,taskUUIDEnum.getTaskId());
                 phone.setPhone(performanceInfo.getPhoneNum());
                 phone.setTaskName(taskUUIDEnum.getTaskName());
+                if(performanceInfo.getCallScene().equals("质差派单")){
+                    redisUtil.markPhoneCalledToday(performanceInfo.getPhoneNum());
+                    }
                 taskPhoneDao.insert(phone);
             }else {
-                //否则调用号码重置状态接口
-                uploadDataService.numberBatchReset(taskUUIDEnum.getTaskId(),performanceInfo.getPhoneNum());
+                //调用号码重置状态接口
+                //判断质差派单场景这个号码是否今天进行过外呼
+                if(performanceInfo.getCallScene().equals("质差派单")){
+                    boolean calledToday = redisUtil.isPhoneCalledToday(performanceInfo.getPhoneNum());
+                    if(calledToday){
+                        log.info("{}此号码今天已进行过质差派单外呼",performanceInfo.getPhoneNum());
+                    }else {
+                        redisUtil.markPhoneCalledToday(performanceInfo.getPhoneNum());
+                        uploadDataService.numberBatchReset(taskUUIDEnum.getTaskId(),performanceInfo.getPhoneNum());
+                        log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(),taskUUIDEnum.getTaskId());
+                    }
+                }else {
+                    uploadDataService.numberBatchReset(taskUUIDEnum.getTaskId(),performanceInfo.getPhoneNum());
+                    log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(),taskUUIDEnum.getTaskId());
+                }
             }
-
-            log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(),taskUUIDEnum.getTaskId());
         } catch (Exception e) {
             // 记录异常但不影响主流程
             log.error("异步上传性能数据失败, phoneNum={}", performanceInfo.getPhoneNum(), e);

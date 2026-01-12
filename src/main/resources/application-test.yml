@@ -26,3 +26,18 @@ spring:
       test-while-idle: true
       test-on-borrow: false
       test-on-return: false
+  # Redis 核心配置
+  redis:
+    # 服务器地址（单机版），集群/哨兵需单独配置
+    host: 127.0.0.1
+    # Redis 端口，默认6379
+    port: 6379
+    # 密码（无密码则注释或留空）
+    password: QWER1234
+    # 数据库索引（Redis默认有16个库，0-15，建议单独用一个库区分业务）
+    database: 0
+
+
+
+
+
