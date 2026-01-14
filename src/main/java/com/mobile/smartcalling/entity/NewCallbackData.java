@@ -30,6 +30,7 @@ public class NewCallbackData {
         private Level level;
         private List<Tag> tags;
         private CustomerData customer_data;
+        private List<Outbound_collection_records> outbound_collection_records;
         private String voice_url;
     }
 
@@ -80,6 +81,17 @@ public class NewCallbackData {
         private String extra;
         private List<Components> components;
     }
+
+    @Data
+    public static class Outbound_collection_records {
+        private String record_id;
+        private String component_id;
+        private String customer_id;
+        private String content;
+        private String type;
+        private String main_component_name;
+    }
+
     @Data
     public static class Components {
         private String id;

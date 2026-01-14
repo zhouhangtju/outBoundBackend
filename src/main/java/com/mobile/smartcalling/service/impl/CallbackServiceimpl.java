@@ -400,11 +400,21 @@ public class CallbackServiceimpl implements ICallbackSevice {
         poorQualityResultRequest.setCallTime(callRecordData.getCalldate());
         poorQualityResultRequest.setPhoneNum(callRecordData.getNumber_data().getNumber());
         List<NewCallbackData.Components> components = callRecordData.getCustomer_data().getComponents();
-        if(components.size()!=0&&components.get(0).getValue()!=null){
-            TimeString string = new TimeString();
-            string.setTimeString(components.get(0).getValue());
-            poorQualityResultRequest.setArriveTime(getTime(string));
-        }
+        List<NewCallbackData.Outbound_collection_records> outboundCollectionRecords = callRecordData.getOutbound_collection_records();
+//        if(components.size()!=0&&components.get(0).getValue()!=null){
+//            TimeString string = new TimeString();
+//            string.setTimeString(components.get(0).getValue());
+//            poorQualityResultRequest.setArriveTime(getTime(string));
+//        }
+            outboundCollectionRecords.forEach(item ->{
+                if(item.getComponent_id().equals("1a73603b-5fc5-4b2c-97be-51aae21736e7")){
+                    TimeString string = new TimeString();
+                    string.setTimeString(item.getContent());
+                    poorQualityResultRequest.setArriveTime(getTime(string));
+                }
+            });
+        
+        
        // poorQualityResultRequest.setLineStatus("呼叫成功");
         Integer status = null;
                 status = callRecordData.getStatus();
