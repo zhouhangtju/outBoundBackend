@@ -127,6 +127,11 @@ public class CallbackServiceimpl implements ICallbackSevice {
 
     }
 
+    /**
+     * 存量维系回调结果解析
+     * @param callRecordData
+     * @return ResultDB
+     */
     public ResultDB newStockMaintenanceType(NewCallbackData.CallRecordData callRecordData){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 设置为东八区
@@ -199,8 +204,11 @@ public class CallbackServiceimpl implements ICallbackSevice {
     }
 
 
-
-
+    /**
+     * 装机单竣工回访回调结果解析
+     * @param callRecordData
+     * @return RemoteCallResultDto
+     */
     public RemoteCallResultDto newCheckInstallationCompletion(NewCallbackData.CallRecordData callRecordData) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 设置为东八区
@@ -253,7 +261,11 @@ public class CallbackServiceimpl implements ICallbackSevice {
     }
 
 
-
+    /**
+     * 投诉单报结回调结果解析
+     * @param callRecordData
+     * @return RemoteCallResultDto
+     */
     public static RemoteCallResultDto newFollowUpResolvedComplaints(NewCallbackData.CallRecordData callRecordData) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 设置为东八区
@@ -329,7 +341,11 @@ public class CallbackServiceimpl implements ICallbackSevice {
     }
 
 
-
+    /**
+     * 质差修复已上门回调结果解析
+     * @param callRecordData
+     * @return RemoteCallResultDto
+     */
     public static RemoteCallResultDto newSendPoorQualitySurvey(NewCallbackData.CallRecordData callRecordData){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 设置为东八区
@@ -390,8 +406,11 @@ public class CallbackServiceimpl implements ICallbackSevice {
     }
 
 
-
-
+    /**
+     * 质差派单回调结果解析
+     * @param callRecordData
+     * @return PoorQualityResultRequest
+     */
     public PoorQualityResultRequest newCreatePoorQualityDispatchSurvey(NewCallbackData.CallRecordData callRecordData){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 设置为东八区
@@ -451,6 +470,11 @@ public class CallbackServiceimpl implements ICallbackSevice {
         }
 
 
+    /**
+     * 时间处理逻辑
+     * @param timeString
+     * @return String
+     */
     public String getTime(TimeString timeString) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
