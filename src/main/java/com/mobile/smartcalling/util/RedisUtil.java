@@ -1,13 +1,17 @@
 package com.mobile.smartcalling.util;
 
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 public class RedisUtil {
 
     @Resource
@@ -59,6 +63,56 @@ public class RedisUtil {
          Boolean deleted = redisTemplate.delete(yesterdayKey);
         // 处理null（Redis连接异常时可能返回null），避免空指针
         return deleted != null && deleted;
+    }
+
+
+    // 手机号30天存储：key = "phone:13812345678"
+    public void setPhoneByThirtyDays(String phone) {
+        redisTemplate.opsForValue().set("phone:" + phone, "1", 30, TimeUnit.DAYS);
+    }
+
+    // 手机号60天存储：key = "phone:13812345678"
+    public void setPhoneBySixtyDays(String phone) {
+        redisTemplate.opsForValue().set("phone:" + phone, "1", 60, TimeUnit.DAYS);
+    }
+
+    // 判断手机号是否存在
+    public boolean isPhoneExists(String phone) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey("phone:" + phone));
+    }
+
+
+    /**
+     * 获取手机号在 Redis 中的剩余过期时间（单位：秒）
+     */
+    public long getPhoneTtl(String phone) {
+        String key = "phone:" + phone;
+        return redisTemplate.getExpire(key, TimeUnit.SECONDS);
+    }
+
+
+    // 删除指定 phone 缓存
+    public  String removePhoneByRedis(String phone){
+        // 1. 构建 Redis key
+        String redisKey = "phone:" + phone;
+
+        // 2. 判断 Redis 中是否存在该 key
+        Boolean hasKey = redisTemplate.hasKey(redisKey);
+
+        // 3. 根据是否存在执行不同逻辑
+        if (Boolean.TRUE.equals(hasKey)) {
+            // 存在旧数据，删除
+            redisTemplate.delete(redisKey);
+            log.info("手机号：{} 缓存已经删除",phone);
+
+            return "200";
+        } else {
+
+            log.info("手机号：{} 缓存中不存在 无需删除",phone);
+
+            return "200";
+        }
+
     }
 
 }
