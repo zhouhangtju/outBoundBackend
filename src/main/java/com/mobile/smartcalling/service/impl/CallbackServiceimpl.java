@@ -250,7 +250,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                 String name = tag.getName();
                 String[] split = name.split(":", 2);
 
-                if (split[0].contains("Q1")) {
+                if (split[0].contains("Q1") && !split[0].contains("Q10")) {
                     resultDto.setQ1(split[1]);
                 }
                 if (split[0].contains("Q3")) {
@@ -264,18 +264,26 @@ public class CallbackServiceimpl implements ICallbackSevice {
 //                }
                 if (split[0].startsWith("Q4")) {
                     // 第二步：排除 Q4-1 这个特殊节点（单独处理）
-                    if ("Q4-1".equals(split[0])) {
-                        resultDto.setQ7(split[1]);
-                    } else {
-                        // 匹配 Q4、Q4-2、Q4-3 等所有 Q4 相关的其他节点
-                        resultDto.setQ4(split[1]);
-                    }
+                    // 匹配 Q4、Q4-2、Q4-3 等所有 Q4 相关的其他节点
+                   resultDto.setQ4(split[1]);
                 }
                 if (split[0].contains("Q5")) {
                     resultDto.setQ5(split[1]);
                 }
                 if (split[0].contains("Q6")) {
                     resultDto.setQ6(split[1]);
+                }
+                if (split[0].contains("Q7")) {
+                    resultDto.setQ7(split[1]);
+                }
+                if (split[0].contains("Q8")) {
+                    resultDto.setQ8(split[1]);
+                }
+                if (split[0].contains("Q9")) {
+                    resultDto.setQ9(split[1]);
+                }
+                if (split[0].contains("Q10")) {
+                    resultDto.setQ10(split[1]);
                 }
             }
             if (ObjectUtils.isNotEmpty(callRecordData.getStatus()) && isAllFieldsNull(resultDto) && callRecordData.getStatus() == 1) {
