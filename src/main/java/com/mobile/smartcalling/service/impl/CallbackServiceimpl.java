@@ -253,6 +253,9 @@ public class CallbackServiceimpl implements ICallbackSevice {
                 if (split[0].contains("Q1") && !split[0].contains("Q10")) {
                     resultDto.setQ1(split[1]);
                 }
+                if (split[0].contains("Q2")) {
+                    resultDto.setQ2(split[1]);
+                }
                 if (split[0].contains("Q3")) {
                     resultDto.setQ3(split[1]);
                 }
