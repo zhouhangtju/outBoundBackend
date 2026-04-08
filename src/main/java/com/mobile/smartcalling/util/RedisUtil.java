@@ -48,6 +48,20 @@ public class RedisUtil {
         return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(todayKey, phoneNum));
     }
 
+    /**
+     * 删除当天Set中某个手机号（用于清除“当天已外呼”限制）
+     */
+    public String removeTodayPoorQualityDispatchPhone(String phone) {
+        String todayKey = getTodayKey();
+        Long removed = redisTemplate.opsForSet().remove(todayKey, phone);
+        if (removed != null && removed > 0) {
+            log.info("手机号：{} 已从今日质差派单外呼集合 {} 删除", phone, todayKey);
+        } else {
+            log.info("手机号：{} 不在今日质差派单外呼集合 {} 中，无需删除", phone, todayKey);
+        }
+        return "200";
+    }
+
 
     /**
      * 删除昨天存储手机号的Redis Set集合key

@@ -81,6 +81,11 @@ public class OpenApiController {
         return result;
     }
 
+    @GetMapping("/remove/poor-quality-dispatch/today/phone/caching")
+    public String removeTodayPoorQualityDispatchPhoneByRedis(@RequestParam(name = "phone", defaultValue = "phone", required = false) String phone) {
+        return redisUtil.removeTodayPoorQualityDispatchPhone(phone);
+    }
+
 
 
     public void asyncUploadData(PerformanceInfo performanceInfo) {
