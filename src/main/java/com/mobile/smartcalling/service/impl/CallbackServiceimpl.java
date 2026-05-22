@@ -288,6 +288,12 @@ public class CallbackServiceimpl implements ICallbackSevice {
                 if (split[0].contains("Q10")) {
                     resultDto.setQ10(split[1]);
                 }
+                //后处理用户说我满意，要把装机Q3Q4改成10分
+                if (split[0].equals("改成十分"))
+                {
+                    resultDto.setQ3("10分");
+                    resultDto.setQ4("10分");
+                }
             }
             if (ObjectUtils.isNotEmpty(callRecordData.getStatus()) && isAllFieldsNull(resultDto) && callRecordData.getStatus() == 1) {
                 resultDto.setQ1("接通未评价");
@@ -372,6 +378,12 @@ public class CallbackServiceimpl implements ICallbackSevice {
                 if (split[0].contains("Q10") && split[0].matches(".*\\bQ10\\b.*")) {
                     resultDto.setQ10(split[1]);
                 }
+                //投诉单报结改分逻辑
+                if (split[0].equals("改成十分"))
+                {
+                    resultDto.setQ6("10分");
+                    resultDto.setQ7("10分");
+                }
             }
             if (ObjectUtils.isNotEmpty(callRecordData.getStatus()) && isAllFieldsNull(resultDto) && callRecordData.getStatus() == 1) {
                 resultDto.setQ1("接通未评价");
@@ -438,6 +450,12 @@ public class CallbackServiceimpl implements ICallbackSevice {
                 if (split[0].contains("Q7")) {
                     resultDto.setQ7(split[1]);
                 }
+                //质差修复已上门改10分
+                if (split[0].equals("改成十分"))
+                {
+                    resultDto.setQ4("10分");
+                    resultDto.setQ5("10分");
+                }
             }
             if (ObjectUtils.isNotEmpty(callRecordData.getStatus()) && isAllFieldsNull(resultDto) && callRecordData.getStatus() == 1) {
                 resultDto.setQ1("接通未评价");
@@ -467,13 +485,14 @@ public class CallbackServiceimpl implements ICallbackSevice {
 //            string.setTimeString(components.get(0).getValue());
 //            poorQualityResultRequest.setArriveTime(getTime(string));
 //        }
-        outboundCollectionRecords.forEach(item -> {
-            if (item.getComponent_id().equals("1a73603b-5fc5-4b2c-97be-51aae21736e7")) {
-                TimeString string = new TimeString();
-                string.setTimeString(item.getContent());
-                poorQualityResultRequest.setArriveTime(getTime(string));
-            }
-        });
+
+//        outboundCollectionRecords.forEach(item -> {
+//            if (item.getComponent_id().equals("1a73603b-5fc5-4b2c-97be-51aae21736e7")) {
+//                TimeString string = new TimeString();
+//                string.setTimeString(item.getContent());
+//                poorQualityResultRequest.setArriveTime(getTime(string));
+//            }
+//        });
 
 
         // poorQualityResultRequest.setLineStatus("呼叫成功");
@@ -502,12 +521,26 @@ public class CallbackServiceimpl implements ICallbackSevice {
                         poorQualityResultRequest.setIsArrive("否");
                     }
                 }
+                else if(split[0].contains("Q2")){
+                    System.out.println(split[1]);
+                    if (split[1].equals("抓取时间关键字")){
+                        outboundCollectionRecords.forEach(item -> {
+                            if (item.getComponent_id().equals("1a73603b-5fc5-4b2c-97be-51aae21736e7")) {
+                                TimeString string = new TimeString();
+                                string.setTimeString(item.getContent());
+                                poorQualityResultRequest.setArriveTime(getTime(string));
+                            }
+                        });
+                    }
+                }
             }
         }
 
         if (StringUtils.isEmpty(poorQualityResultRequest.getIsArrive()) || poorQualityResultRequest.getIsArrive() == null) {
             poorQualityResultRequest.setIsArrive("否");
         }
+//        log.info("poorQualityResultRequest");
+        log.info("poorQualityResultRequest={}", JSONObject.toJSONString(poorQualityResultRequest));
         return poorQualityResultRequest;
     }
 
