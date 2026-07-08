@@ -66,66 +66,80 @@ public class CsvExportService {
      * 获取CSV表头
      */
     private String[] getHeaders(TaskTypeEnum taskType) {
-        return switch (taskType) {
-            case INSTALLATION_NINGBO -> new String[]{
+        switch (taskType) {
+            case INSTALLATION_NINGBO:
+                return new String[]{
                     "task", "city", "order_id", "customer_account",
                     "line_status", "arrive_time", "tag1", "tag2", "tag3", "tag4"
-            };
-            case INSTALLATION_OTHER -> new String[]{
+                };
+            case INSTALLATION_OTHER:
+                return new String[]{
                     "task", "city", "order_id", "customer_account",
                     "line_status", "arrive_time", "tag1", "tag3", "tag4", "tag5"
-            };
-            case POOR_QUALITY_DISPATCH -> new String[]{
+                };
+            case POOR_QUALITY_DISPATCH:
+                return new String[]{
                     "task", "city", "order_id", "customer_account",
                     "line_status", "是否需要上门", "上门时间"
-            };
-            case POOR_QUALITY_REPAIR -> new String[]{
+                };
+            case POOR_QUALITY_REPAIR:
+                return new String[]{
                     "task", "city", "order_id", "customer_account",
                     "line_status", "arrive_time", "tag1", "tag4", "tag5", "tag6"
-            };
-            case POOR_QUALITY_REPAIR_NOT_VISIT -> new String[]{
+                };
+            case POOR_QUALITY_REPAIR_NOT_VISIT:
+                return new String[]{
                     "task", "city", "order_id", "customer_account",
                     "line_status", "arrive_time", "tag1", "tag6", "tag7", "tag8"
-            };
-        };
+                };
+            default:
+                throw new IllegalArgumentException("Unsupported task type: " + taskType);
+        }
     }
 
     /**
      * 获取CSV行数据
      */
     private Object[] getRowData(RemoteCallResult record, TaskTypeEnum taskType) {
-        return switch (taskType) {
-            case INSTALLATION_NINGBO -> new Object[]{
+        switch (taskType) {
+            case INSTALLATION_NINGBO:
+                return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
                     record.getArriveTime(), record.getTag1(), record.getTag2(),
                     record.getTag3(), record.getTag4()
-            };
-            case INSTALLATION_OTHER -> new Object[]{
+                };
+            case INSTALLATION_OTHER:
+                return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
                     record.getArriveTime(), record.getTag1(), record.getTag3(),
                     record.getTag4(), record.getTag5()
-            };
-            case POOR_QUALITY_DISPATCH -> new Object[]{
+                };
+            case POOR_QUALITY_DISPATCH:
+                return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
                     record.getTag1(), // 是否需要上门
                     record.getTag2()  // 上门时间
-            };
-            case POOR_QUALITY_REPAIR -> new Object[]{
+                };
+            case POOR_QUALITY_REPAIR:
+                return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
                     record.getArriveTime(), record.getTag1(), record.getTag4(),
                     record.getTag5(), record.getTag6()
-            };
+                };
 
-            case  POOR_QUALITY_REPAIR_NOT_VISIT -> new Object[]{
+            case POOR_QUALITY_REPAIR_NOT_VISIT:
+                return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
                     record.getArriveTime(), record.getTag1(), record.getTag6(),
                     record.getTag7(), record.getTag8()
-            };
-        };
+                };
+            default:
+                throw new IllegalArgumentException("Unsupported task type: " + taskType);
+        }
     }
 }

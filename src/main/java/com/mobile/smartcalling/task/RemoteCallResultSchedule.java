@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -66,13 +67,12 @@ public class RemoteCallResultSchedule {
                     .collect(Collectors.groupingBy(RemoteCallResult::getTask));
 
             // 定义任务类型映射
-            Map<String, TaskTypeEnum> taskMapping = Map.of(
-                    "装机竣工-宁波", TaskTypeEnum.INSTALLATION_NINGBO,
-                    "装机竣工-除宁波地市外", TaskTypeEnum.INSTALLATION_OTHER,
-                    "质差派单", TaskTypeEnum.POOR_QUALITY_DISPATCH,
-                    "质差修复已上门回访", TaskTypeEnum.POOR_QUALITY_REPAIR,
-                    "投诉单报结回访", TaskTypeEnum.POOR_QUALITY_REPAIR_NOT_VISIT
-            );
+            Map<String, TaskTypeEnum> taskMapping = new HashMap<>();
+            taskMapping.put("装机竣工-宁波", TaskTypeEnum.INSTALLATION_NINGBO);
+            taskMapping.put("装机竣工-除宁波地市外", TaskTypeEnum.INSTALLATION_OTHER);
+            taskMapping.put("质差派单", TaskTypeEnum.POOR_QUALITY_DISPATCH);
+            taskMapping.put("质差修复已上门回访", TaskTypeEnum.POOR_QUALITY_REPAIR);
+            taskMapping.put("投诉单报结回访", TaskTypeEnum.POOR_QUALITY_REPAIR_NOT_VISIT);
 
             // 遍历生成CSV并上传
             for (Map.Entry<String, List<RemoteCallResult>> entry : groupedData.entrySet()) {
