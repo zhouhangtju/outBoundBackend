@@ -37,7 +37,7 @@ public class RemoteCallResultSchedule {
     /**
      * 每天凌晨3点执行定时任务
      */
-    @Scheduled(cron = "0 0 3 * * ?")
+    @Scheduled(cron = "0 0 19 * * ?")
     public void execute() {
         // 检查定时任务开关
         if (!scheduleConfig.isEnabled()) {

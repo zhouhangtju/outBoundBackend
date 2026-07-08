@@ -379,7 +379,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     resultDto.setQ10(split[1]);
                 }
                 //后处理用户说我满意，要把装机Q3Q4改成10分
-                if (split[0].equals("改成十分"))
+                if (name.contains("改成十分"))
                 {
                     resultDto.setQ3("10分");
                     resultDto.setQ4("10分");
@@ -469,7 +469,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     resultDto.setQ10(split[1]);
                 }
                 //投诉单报结改分逻辑
-                if (split[0].equals("改成十分"))
+                if (name.contains("改成十分"))
                 {
                     resultDto.setQ6("10分");
                     resultDto.setQ7("10分");
@@ -541,7 +541,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     resultDto.setQ7(split[1]);
                 }
                 //质差修复已上门改10分
-                if (split[0].equals("改成十分"))
+                if (name.contains("改成十分"))
                 {
                     resultDto.setQ4("10分");
                     resultDto.setQ5("10分");

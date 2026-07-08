@@ -25,5 +25,5 @@ ftp:
 
 # 定时任务配置
 schedule:
-  enabled: true
+  enabled: false
   cron: 0 0 19 * * ?
