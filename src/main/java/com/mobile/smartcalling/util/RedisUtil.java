@@ -1,6 +1,8 @@
 package com.mobile.smartcalling.util;
 
 
+import cn.hutool.core.collection.CollUtil;
+import com.mobile.smartcalling.entity.NewCallbackData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -8,7 +10,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -90,6 +97,54 @@ public class RedisUtil {
         redisTemplate.opsForValue().set("phone:" + phone, "1", 60, TimeUnit.DAYS);
     }
 
+    public void setOrderIdAndBroadband(String orderId,String broadband){
+        String orderIdKey = "order:"+orderId;
+        redisTemplate.opsForValue().set(orderIdKey, broadband, 30, TimeUnit.DAYS);
+        log.info("orderId关联宽带账号存入Redis成功，orderIdKey:{}, broadband:{}", orderIdKey, broadband);
+    }
+
+    public Object getOrderIdAndBroadband(String orderId){
+        String orderIdKey = "order:"+orderId;
+        Object broadband = redisTemplate.opsForValue().get(orderIdKey);
+        log.info("orderId关联宽带账号查询Redis成功，orderIdKey:{}, broadband:{}",orderIdKey,broadband);
+        return broadband;
+    }
+
+    /**
+     * 批量根据订单号获取关联宽带账号
+     * @param orderIds 订单号列表
+     * @return 包含 orderId 和 broadband 的 Map
+     */
+    public Map<String, String> multiGetOrderAndBroadband(List<String> orderIds) {
+        if (CollUtil.isEmpty(orderIds)) {
+            return new HashMap<>();
+        }
+
+        // 1. 构建需要查询的完整 Redis Key 列表
+        List<String> redisKeys = orderIds.stream()
+                .map(orderId -> "order:" + orderId)
+                .collect(Collectors.toList());
+
+        // 2. 一次性批量查询 Redis
+        List<Object> values = redisTemplate.opsForValue().multiGet(redisKeys);
+
+        // 3. 将结果组装成 Map，方便后续通过 orderId 快速查找
+        Map<String, String> resultMap = new HashMap<>();
+        for (int i = 0; i < orderIds.size(); i++) {
+            Object value = values.get(i);
+            if (value != null) {
+                resultMap.put(orderIds.get(i), value.toString());
+            }else{
+                resultMap.put(orderIds.get(i),"");
+            }
+        }
+
+        log.info("批量查询Redis成功，请求数量:{}, 命中数量:{}", orderIds.size(), resultMap.size());
+        return resultMap;
+    }
+
+
+
     // 判断手机号是否存在
     public boolean isPhoneExists(String phone) {
         return Boolean.TRUE.equals(redisTemplate.hasKey("phone:" + phone));
@@ -127,6 +182,23 @@ public class RedisUtil {
             return "200";
         }
 
+    }
+
+    public static void main(String[] args) {
+
+        NewCallbackData cell = new NewCallbackData();
+
+        String  taskName = "装机单竣工回访-杭州";
+
+
+
+        String taskNames = Optional.ofNullable(taskName).orElse("");
+        String[] taskArray = taskNames.split("-");
+
+        String[] taskArray2 = taskName.split("-", 2);
+
+
+        System.out.println(taskArray2[0]+"----------------"+taskArray2[1]);
     }
 
 }

@@ -1,7 +1,12 @@
 package com.mobile.smartcalling.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.mobile.smartcalling.common.*;
+import com.mobile.smartcalling.dao.RemoteCallResultDao;
 import com.mobile.smartcalling.dao.ResultDBDao;
 import com.mobile.smartcalling.dto.CallBackResult;
 import com.mobile.smartcalling.dto.PoorQualityResultRequest;
@@ -27,8 +32,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import org.springframework.web.client.RestTemplate;
+
+import javax.swing.text.html.Option;
 
 
 @Service
@@ -40,6 +48,8 @@ public class CallbackServiceimpl implements ICallbackSevice {
     private UploadDataService uploadDataService;
     @Autowired
     private ResultDBDao resultDBDao;
+    @Autowired
+    private RemoteCallResultDao remoteCallResultDao;
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -70,17 +80,32 @@ public class CallbackServiceimpl implements ICallbackSevice {
         try {
             if (newCallbackData.getData() != null && newCallbackData.getData().size() != 0) {
                 List<NewCallbackData.CallRecordData> data = newCallbackData.getData();
+                List<RemoteCallResult> remoteCallResultList = new LinkedList<>();
+
+                // 获取所有的orderid 一次性查出所有的对应宽带账号  避免循环内多次调用redis
+                List<String> orderIds = data.stream()
+                        .map(item -> Optional.ofNullable(item)
+                                .map(NewCallbackData.CallRecordData::getCustomer_data)
+                                .map(NewCallbackData.CustomerData::getExtra).orElse(""))
+                        .collect(Collectors.toList());
+                log.info("=======> orderIds:{}", orderIds);
+                // 组建 订单-宽带  映射Map
+                Map<String, String> orderAndBroadbandMap = redisUtil.multiGetOrderAndBroadband(orderIds);
+
+                log.info("=========================> orderAndBroadbandMap:{}", orderAndBroadbandMap);
+
                 for (int i = 0; i < data.size(); i++) {
                     NewCallbackData.CallRecordData callRecordData = data.get(i);
                     NewCallbackData.Task task = callRecordData.getTask();
-//            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-//            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
-//            Date date = new Date();
-//            Date time = DateUtils.addDays(date,-1);
-//            String ds = sdf.format(time);
-//            String dd = ds.replace("-", "");
 
-                    // List<NewCallbackData.Tag> tags = callRecordData.getTags();
+                    // 补充callDate 字段
+                    String callDate = Optional.ofNullable(callRecordData)
+                            .map(NewCallbackData.CallRecordData::getCalldate)
+                            .orElse("");
+
+                    //装机单竣工回访-杭州
+                    String taskName = Optional.ofNullable(task).map(NewCallbackData.Task::getName).orElse("");
+
 
                     Integer status = callRecordData.getStatus();
                     String phoneNumber = "";
@@ -88,64 +113,129 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     NewCallbackData.NumberData numberData = callRecordData.getNumber_data();
                     if (ObjectUtils.isNotEmpty(numberData)) {
                         phoneNumber = numberData.getNumber();
-                        log.info("手机号：{}，状态码：{}",phoneNumber,status);
+                        log.info("手机号：{}，状态码：{}", phoneNumber, status);
                     }
 
                     if (PhoneCallBackStatusEnum.notOutsidecodes().contains(status)) {
-                        if (task.getName().contains("质差修复已上门") || task.getName().contains("装机单竣工回访") || task.getName().contains("投诉单报结回访")) {
+                        if (taskName.contains("质差修复已上门") || taskName.contains("装机单竣工回访") || taskName.contains("投诉单报结回访")) {
                             redisUtil.setPhoneByThirtyDays(phoneNumber);
                             log.info("满足要求状态 【30天禁止外呼】手机号 {} 已加入禁止外呼 放入缓存，状态码: {}", phoneNumber, status);
                         }
 
-                        if (task.getName().contains("质差派单")) {
+                        if (taskName.contains("质差派单")) {
                             redisUtil.setPhoneByThirtyDays(phoneNumber);
                             log.info("满足要求状态 【30天禁止外呼】手机号 {} 已加入禁止外呼 放入缓存，状态码: {}", phoneNumber, status);
 
                         }
                     }
+
+                    String[] taskArray = taskName.split("-", 2);
+
+
 //                    boolean phoneExists = redisUtil.isPhoneExists(phoneNumber);
 
+                    String orderId = Optional.ofNullable(callRecordData)
+                            .map(NewCallbackData.CallRecordData::getCustomer_data)
+                            .map(NewCallbackData.CustomerData::getExtra)
+                            .orElse("");
 
-                    if (task.getName().contains("存量维系")) {
+                    log.info("==============>orderId callRecordData.getCustomer_data().getExtra() 值为：{}", orderId);
+
+                    // 从开始的所有 订单-宽带账号编号  获取
+                    String broadband = orderAndBroadbandMap.getOrDefault(orderId, "");
+
+//                    Object broadband = redisUtil.getOrderIdAndBroadband(orderId);
+//                    String broadbandStr = Optional.ofNullable(broadband).map(Object::toString).orElse("");
+
+
+                    log.info("==============>orderId 获取到的宽带账号的值是：{}", broadband);
+
+                    //@TODO 构建RemoteCallResult 表 入库 加入callDate 字段
+                    RemoteCallResult remoteCallResult = new RemoteCallResult().setPhoneNum(phoneNumber).setOrderId(orderId).setCustomerAccount(broadband).setCallDate(callDate);
+
+                    RemoteCallResultDto resultDto = new RemoteCallResultDto();
+
+                    if (taskName.contains("存量维系")) {
                         //   ResultDB resultDB = new ResultDB();
                         ResultDB resultDB = newStockMaintenanceType(callRecordData);
                         log.info("存量维系回调信息入库结果{}", resultDB);
                         resultDBDao.insert(resultDB);
                     }
-                    if (task.getName().contains("装机单竣工回访")) {
+                    if (taskName.contains("装机单竣工回访")) {
                         //RemoteCallResultDto resultDto = checkInstallationCompletion(callbackData);
-                        RemoteCallResultDto resultDto = newCheckInstallationCompletion(callRecordData);
-                        resultDto.setOrderid(callRecordData.getCustomer_data().getExtra());
+                        resultDto = newCheckInstallationCompletion(callRecordData);
+                        resultDto.setOrderid(orderId);
                         log.info("装机单竣工回访场景结果{}", resultDto);
                         uploadDataService.uploadResult(resultDto, task.getName());
                     }
-                    if (task.getName().contains("投诉单报结")) {
+                    if (taskName.contains("投诉单报结")) {
                         //RemoteCallResultDto resultDto = followUpResolvedComplaints(callbackData);
-                        RemoteCallResultDto resultDto = newFollowUpResolvedComplaints(callRecordData);
-                        resultDto.setOrderid(callRecordData.getCustomer_data().getExtra());
+                        resultDto = newFollowUpResolvedComplaints(callRecordData);
+                        resultDto.setOrderid(orderId);
                         log.info("投诉单报结回访场景结果{}", resultDto);
                         uploadDataService.uploadResult(resultDto, task.getName());
                     }
-                    if (task.getName().contains("质差修复已上门")) {
+                    if (taskName.contains("质差修复已上门")) {
                         // RemoteCallResultDto resultDto = sendPoorQualitySurvey(callbackData);
-                        RemoteCallResultDto resultDto = newSendPoorQualitySurvey(callRecordData);
-                        resultDto.setOrderid(callRecordData.getCustomer_data().getExtra());
+                        resultDto = newSendPoorQualitySurvey(callRecordData);
+                        resultDto.setOrderid(orderId);
                         log.info("质差修复已上门场景结果{}", resultDto);
                         uploadDataService.uploadResult(resultDto, task.getName());
                     }
-                    if (task.getName().contains("质差派单")) {
+                    if (taskName.contains("质差派单")) {
                         //RemoteCallResultDto resultDto = createPoorQualityDispatchSurvey(callbackData);
-                        PoorQualityResultRequest resultDto = newCreatePoorQualityDispatchSurvey(callRecordData);
+                        PoorQualityResultRequest resultDto2 = newCreatePoorQualityDispatchSurvey(callRecordData);
                         // resultDto.setOrderid(order);
-                        log.info("质差派单场景结果{}", resultDto);
-                        uploadDataService.uploadPoorQualityResult(resultDto);
+                        log.info("质差派单场景结果{}", resultDto2);
+                        uploadDataService.uploadPoorQualityResult(resultDto2);
+                        log.info("质差派单 resultDto2：{}", JSONObject.toJSONString(resultDto2));
+                        remoteCallResult
+                                .setCallTime(StringUtils.defaultString(resultDto2.getCallTime()))
+                                .setArriveTime(StringUtils.defaultString(resultDto2.getArriveTime()))
+                                .setIsArrive(StringUtils.defaultString(resultDto2.getIsArrive()))
+                                .setLineStatus(StringUtils.defaultString(resultDto2.getLineStatus()));
                     }
+                    if (null != resultDto) {
+
+                        // 将taskName进行分割  得到的外呼名称和城市
+                        if (ArrayUtil.isNotEmpty(taskArray) && taskArray.length == 2) {
+                            String taskStr = taskArray[0];
+                            String taskCity = taskArray[1];
+                            remoteCallResult.setTask(StringUtils.defaultString(taskStr));
+                            remoteCallResult.setCity(StringUtils.defaultString(taskCity));
+                        }
+
+                        log.info("设置tag");
+                        remoteCallResult
+                                .setTag1(StringUtils.defaultString(resultDto.getQ1()))
+                                .setTag2(StringUtils.defaultString(resultDto.getQ2()))
+                                .setTag3(StringUtils.defaultString(resultDto.getQ3()))
+                                .setTag4(StringUtils.defaultString(resultDto.getQ4()))
+                                .setTag5(StringUtils.defaultString(resultDto.getQ5()))
+                                .setTag6(StringUtils.defaultString(resultDto.getQ6()))
+                                .setTag7(StringUtils.defaultString(resultDto.getQ7()))
+                                .setTag8(StringUtils.defaultString(resultDto.getQ8()))
+                                .setTag9(StringUtils.defaultString(resultDto.getQ9()))
+                                .setTag10(StringUtils.defaultString(resultDto.getQ10()))
+                                .setTag11(StringUtils.defaultString(resultDto.getQ11()));
+                    }
+
+                    remoteCallResultList.add(remoteCallResult);
                 }
+
+
+                if (CollUtil.isNotEmpty(remoteCallResultList)) {
+                    log.info("=================> remoteCallResultList Size:{},demo:{}", remoteCallResultList.size(), remoteCallResultList.get(0));
+                    Integer number = remoteCallResultDao.insertBatch(remoteCallResultList);
+                    log.info("=============>  remoteCallResultList 入库完成 条数：{}", remoteCallResultList.size());
+                }
+
+
             } else {
                 log.info("回调数据为空");
             }
         } catch (Exception e) {
-            log.info("{}", e);
+            log.error("=============》调用失败：{}", e);
         }
 
     }
@@ -268,7 +358,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                 if (split[0].startsWith("Q4")) {
                     // 第二步：排除 Q4-1 这个特殊节点（单独处理）
                     // 匹配 Q4、Q4-2、Q4-3 等所有 Q4 相关的其他节点
-                   resultDto.setQ4(split[1]);
+                    resultDto.setQ4(split[1]);
                 }
                 if (split[0].contains("Q5")) {
                     resultDto.setQ5(split[1]);

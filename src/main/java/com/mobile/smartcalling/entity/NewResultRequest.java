@@ -11,7 +11,7 @@ public class NewResultRequest {
 
     @Data
     public static class ContactData {
-       // private String name;
+        private String name;
         private String phone;
        // private String email;
       //  private String company;

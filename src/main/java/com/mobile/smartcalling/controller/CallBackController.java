@@ -29,6 +29,7 @@ public class CallBackController {
 @PostMapping("/newInsertData")
 @ApiOperation("回调接口")
     public CallBackResult callback(@RequestBody NewCallbackData callbackData) {
+    // 订单号  宽带账号   关联存入     回调时拿到 订单号取出宽带账号 加上Q1-Q11的字段 保存到表
     CallBackResult backResult = new CallBackResult();
     log.info("回调接口接收数据{}", callbackData);
 

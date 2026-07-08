@@ -1,6 +1,29 @@
 spring:
   profiles:
-    active: test
+    active: prod
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  task:
+    scheduling:
+      # 是否启用定时任务执行器，默认true
+      enabled: true
+      pool:
+        size: 2
+        thread-name-prefix: schedule-
+
+# FTP配置
+ftp:
+  host: 192.168.1.100
+  port: 21
+  username:
+  password:
+  remote-dir: /upload/csv
+  passive-mode: true
+  connect-timeout: 10000
+  data-timeout: 10000
+
+# 定时任务配置
+schedule:
+  enabled: true
+  cron: 0 0 19 * * ?

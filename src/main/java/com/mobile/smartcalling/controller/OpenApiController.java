@@ -1,6 +1,7 @@
 package com.mobile.smartcalling.controller;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mobile.smartcalling.common.TaskUUIDEnum;
 import com.mobile.smartcalling.dao.TaskPhoneDao;
@@ -47,6 +48,7 @@ public class OpenApiController {
     public CallBackResult useCallBack(@RequestBody PerformanceInfo performanceInfo) {
         log.info("接收到性能测数据{}", performanceInfo);
         CallBackResult result = new CallBackResult();
+        //@TODO 判断订单和宽带账号是不是每次都是必传的
         boolean isValid = ObjectUtils.isNotEmpty(performanceInfo) && StringUtils.isNotEmpty(performanceInfo.getPhoneNum());
         // 立即设置返回结果
         result.setSuccess(isValid);
@@ -55,6 +57,16 @@ public class OpenApiController {
         if (isValid) {
             phoneNum = performanceInfo.getPhoneNum();
         }
+
+        if(null != performanceInfo && StrUtil.isNotBlank(performanceInfo.getAccount()) && StrUtil.isNotBlank(performanceInfo.getOrder())){
+            // 将订单id 和宽带账号关联保存到缓存   回调时再取出 加上Q的值入库到mysql  @TODO 宽带账号待补充
+            redisUtil.setOrderIdAndBroadband(performanceInfo.getOrder(),performanceInfo.getAccount());
+            log.info("orderId 关联宽带账号入库成功");
+        }else {
+            log.info("Order Customeraccount 工单号和宽带账号为空");
+        }
+
+
 
         boolean phoneExists = redisUtil.isPhoneExists(phoneNum);
         if (phoneExists) {
@@ -105,6 +117,7 @@ public class OpenApiController {
                 newResultRequest.setSkip_error(true);
                 contactData.setPhone(performanceInfo.getPhoneNum());
                 contactData.setExtra(performanceInfo.getOrder());
+                contactData.setName(performanceInfo.getOrder());
                 contactData.setSort(20);
                 data.add(contactData);
                 newResultRequest.setData(data);
