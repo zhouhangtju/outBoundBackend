@@ -14,16 +14,16 @@ spring:
 
 # FTP配置
 ftp:
-  host: 192.168.1.100
+  host: 10.76.148.39
   port: 21
-  username:
-  password:
-  remote-dir: /upload/csv
+  username: JIAKE
+  password: J8is_F7n61#12
+  remote-dir: /home/JIAKE/OCP
   passive-mode: true
   connect-timeout: 10000
   data-timeout: 10000
 
 # 定时任务配置
 schedule:
-  enabled: false
+  enabled: true
   cron: 0 0 19 * * ?
