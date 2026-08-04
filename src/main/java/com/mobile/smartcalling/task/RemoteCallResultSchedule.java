@@ -36,7 +36,7 @@ public class RemoteCallResultSchedule {
 
 
     /**
-     * 每天凌晨3点执行定时任务
+     * 每天下午7点执行定时任务
      */
     @Scheduled(cron = "0 0 19 * * ?")
     public void execute() {

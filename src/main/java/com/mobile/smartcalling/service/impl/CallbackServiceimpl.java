@@ -151,7 +151,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     log.info("==============>orderId 获取到的宽带账号的值是：{}", broadband);
 
                     //@TODO 构建RemoteCallResult 表 入库 加入callDate 字段
-                    RemoteCallResult remoteCallResult = new RemoteCallResult().setPhoneNum(phoneNumber).setOrderId(orderId).setCustomerAccount(broadband).setCallDate(callDate);
+                    RemoteCallResult remoteCallResult = new RemoteCallResult().setPhoneNum(phoneNumber).setOrderId(orderId).setCustomerAccount(broadband).setCallDate(callDate).setCreateTime(new Date());
 
                     RemoteCallResultDto resultDto = new RemoteCallResultDto();
 
