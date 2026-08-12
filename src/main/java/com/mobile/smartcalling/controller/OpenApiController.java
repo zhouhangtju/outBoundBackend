@@ -1,6 +1,7 @@
 package com.mobile.smartcalling.controller;
 
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mobile.smartcalling.common.TaskUUIDEnum;
@@ -47,6 +48,14 @@ public class OpenApiController {
     @ApiOperation("接收性能测数据")
     public CallBackResult useCallBack(@RequestBody PerformanceInfo performanceInfo) {
         log.info("接收到性能测数据{}", performanceInfo);
+
+        // 如果订单号为空，则生成 UUID+时间戳 作为订单号
+        if (performanceInfo != null && StrUtil.isBlank(performanceInfo.getOrder())) {
+            String generatedOrder = IdUtil.fastSimpleUUID() + System.currentTimeMillis();
+            performanceInfo.setOrder(generatedOrder);
+            log.info("订单号为空，已自动生成订单号: {}", generatedOrder);
+        }
+
         CallBackResult result = new CallBackResult();
         //@TODO 判断订单和宽带账号是不是每次都是必传的
         boolean isValid = ObjectUtils.isNotEmpty(performanceInfo) && StringUtils.isNotEmpty(performanceInfo.getPhoneNum());
