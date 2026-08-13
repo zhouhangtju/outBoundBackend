@@ -70,27 +70,32 @@ public class CsvExportService {
             case INSTALLATION_NINGBO:
                 return new String[]{
                     "task", "city", "order_id", "customer_account",
-                    "line_status", "arrive_time", "tag1", "tag2", "tag3", "tag4"
+                    "line_status", "call_date", "tag1", "tag2", "tag3", "tag4","arrive_time"
                 };
             case INSTALLATION_OTHER:
                 return new String[]{
                     "task", "city", "order_id", "customer_account",
-                    "line_status", "arrive_time", "tag1", "tag3", "tag4", "tag5"
+                    "line_status", "call_date", "tag1", "tag3", "tag4", "tag5"
                 };
             case POOR_QUALITY_DISPATCH:
                 return new String[]{
                     "task", "city", "order_id", "customer_account",
-                    "line_status", "是否需要上门", "上门时间"
+                    "line_status", "call_date", "is_arrive", "arrive_time"
                 };
             case POOR_QUALITY_REPAIR:
                 return new String[]{
                     "task", "city", "order_id", "customer_account",
-                    "line_status", "arrive_time", "tag1", "tag4", "tag5", "tag6"
+                    "line_status", "call_date", "tag1", "tag4", "tag5", "tag6"
                 };
             case POOR_QUALITY_REPAIR_NOT_VISIT:
                 return new String[]{
                     "task", "city", "order_id", "customer_account",
-                    "line_status", "arrive_time", "tag1", "tag6", "tag7", "tag8"
+                    "line_status", "call_date", "tag1", "tag6", "tag7", "tag8"
+                };
+            case SATISFACTION_SURVEY_FOLLOW_UP_DD:
+                return new String[]{
+                        "task", "city", "order_id", "customer_account",
+                        "line_status", "call_date", "tag1", "tag3", "tag4", "tag5", "tag7"
                 };
             default:
                 throw new IllegalArgumentException("Unsupported task type: " + taskType);
@@ -106,28 +111,27 @@ public class CsvExportService {
                 return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
-                    record.getArriveTime(), record.getTag1(), record.getTag2(),
-                    record.getTag3(), record.getTag4()
+                    record.getCallDate(), record.getTag1(), record.getTag2(),
+                    record.getTag3(), record.getTag4(), record.getArriveTime()
                 };
             case INSTALLATION_OTHER:
                 return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
-                    record.getArriveTime(), record.getTag1(), record.getTag3(),
+                    record.getCallDate(), record.getTag1(), record.getTag3(),
                     record.getTag4(), record.getTag5()
                 };
             case POOR_QUALITY_DISPATCH:
                 return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
-                    record.getTag1(), // 是否需要上门
-                    record.getTag2()  // 上门时间
+                    record.getCallDate(), record.getIsArrive(), record.getArriveTime()
                 };
             case POOR_QUALITY_REPAIR:
                 return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
-                    record.getArriveTime(), record.getTag1(), record.getTag4(),
+                    record.getCallDate(), record.getTag1(), record.getTag4(),
                     record.getTag5(), record.getTag6()
                 };
 
@@ -135,8 +139,19 @@ public class CsvExportService {
                 return new Object[]{
                     record.getTask(), record.getCity(), record.getOrderId(),
                     record.getCustomerAccount(), record.getLineStatus(),
-                    record.getArriveTime(), record.getTag1(), record.getTag6(),
+                    record.getCallDate(), record.getTag1(), record.getTag6(),
                     record.getTag7(), record.getTag8()
+                };
+            case SATISFACTION_SURVEY_FOLLOW_UP_DD:
+                return new Object[]{
+                        record.getTask(), record.getCity(), record.getOrderId(),
+                        record.getCustomerAccount(), record.getLineStatus(),
+                        record.getCallDate(),
+                        record.getTag1(),
+                        record.getTag3(),
+                        record.getTag4(),
+                        record.getTag5(),
+                        record.getTag7()
                 };
             default:
                 throw new IllegalArgumentException("Unsupported task type: " + taskType);

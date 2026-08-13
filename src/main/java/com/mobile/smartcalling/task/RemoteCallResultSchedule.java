@@ -73,6 +73,8 @@ public class RemoteCallResultSchedule {
             taskMapping.put("质差派单", TaskTypeEnum.POOR_QUALITY_DISPATCH);
             taskMapping.put("质差修复已上门回访", TaskTypeEnum.POOR_QUALITY_REPAIR);
             taskMapping.put("投诉单报结回访", TaskTypeEnum.POOR_QUALITY_REPAIR_NOT_VISIT);
+            taskMapping.put("存量维系", TaskTypeEnum.SATISFACTION_SURVEY_FOLLOW_UP_DD);
+
 
             // 遍历生成CSV并上传
             for (Map.Entry<String, List<RemoteCallResult>> entry : groupedData.entrySet()) {
@@ -115,6 +117,13 @@ public class RemoteCallResultSchedule {
 
                     log.info("投诉单报结回访执行完成");
 
+                }
+
+                if (taskName.equals(CommonBusinessStrEnum.SATISFACTION_SURVEY_FOLLOW_UP_DD)) {
+
+                    getTaskTypeEnum(taskMapping, "存量维系", dataList);
+
+                    log.info("存量维系执行完成");
                 }
 
             }

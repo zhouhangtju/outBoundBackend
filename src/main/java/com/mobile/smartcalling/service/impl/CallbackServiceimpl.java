@@ -105,6 +105,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
 
                     //装机单竣工回访-杭州
                     String taskName = Optional.ofNullable(task).map(NewCallbackData.Task::getName).orElse("");
+                    log.info("================ taskName: {}",taskName);
 
 
                     Integer status = callRecordData.getStatus();
