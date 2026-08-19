@@ -2,6 +2,7 @@ package com.mobile.smartcalling.controller;
 
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.mobile.smartcalling.common.TaskUUIDEnum;
@@ -67,14 +68,13 @@ public class OpenApiController {
             phoneNum = performanceInfo.getPhoneNum();
         }
 
-        if(null != performanceInfo && StrUtil.isNotBlank(performanceInfo.getAccount()) && StrUtil.isNotBlank(performanceInfo.getOrder())){
+        if (null != performanceInfo && StrUtil.isNotBlank(performanceInfo.getAccount()) && StrUtil.isNotBlank(performanceInfo.getOrder())) {
             // 将订单id 和宽带账号关联保存到缓存   回调时再取出 加上Q的值入库到mysql  @TODO 宽带账号待补充
-            redisUtil.setOrderIdAndBroadband(performanceInfo.getOrder(),performanceInfo.getAccount());
+            redisUtil.setOrderIdAndBroadband(performanceInfo.getOrder(), performanceInfo.getAccount());
             log.info("orderId 关联宽带账号入库成功");
-        }else {
+        } else {
             log.info("Order Customeraccount 工单号和宽带账号为空");
         }
-
 
 
         boolean phoneExists = redisUtil.isPhoneExists(phoneNum);
@@ -95,7 +95,7 @@ public class OpenApiController {
     }
 
     @GetMapping("/remove/phone/caching")
-    public String removePhoneByRedis(@RequestParam(name = "phone", defaultValue = "phone",required = false) String phone){
+    public String removePhoneByRedis(@RequestParam(name = "phone", defaultValue = "phone", required = false) String phone) {
 
         String result = redisUtil.removePhoneByRedis(phone);
 
@@ -108,7 +108,6 @@ public class OpenApiController {
     }
 
 
-
     public void asyncUploadData(PerformanceInfo performanceInfo) {
         try {
             TaskUUIDEnum taskUUIDEnum = TaskUUIDEnum.fromTaskName(performanceInfo.getCallScene() + "-" + performanceInfo.getCity());
@@ -116,6 +115,13 @@ public class OpenApiController {
             queryWrapper.eq(TaskPhone::getPhone, performanceInfo.getPhoneNum());
             queryWrapper.eq(TaskPhone::getTaskName, taskUUIDEnum.getTaskName());
             List<TaskPhone> taskPhones = taskPhoneDao.selectList(queryWrapper);
+
+            String taskId = taskUUIDEnum.getTaskId();
+            String[] split = taskId.split(",");
+            int index = RandomUtil.randomInt(0, split.length);
+            taskId = split[index];
+
+
             if (taskPhones.size() == 0) {
                 //号码第一次拨打，调用号码上传接口,并存入数据库
                 TaskPhone phone = new TaskPhone();
@@ -130,7 +136,7 @@ public class OpenApiController {
                 contactData.setSort(20);
                 data.add(contactData);
                 newResultRequest.setData(data);
-                uploadDataService.newUploadData(newResultRequest, taskUUIDEnum.getTaskId());
+                uploadDataService.newUploadData(newResultRequest, taskId);
                 phone.setPhone(performanceInfo.getPhoneNum());
                 phone.setTaskName(taskUUIDEnum.getTaskName());
                 if (performanceInfo.getCallScene().equals("质差派单")) {
@@ -146,12 +152,12 @@ public class OpenApiController {
                         log.info("{}此号码今天已进行过质差派单外呼", performanceInfo.getPhoneNum());
                     } else {
                         redisUtil.markPhoneCalledToday(performanceInfo.getPhoneNum());
-                        uploadDataService.numberBatchReset(taskUUIDEnum.getTaskId(), performanceInfo.getPhoneNum());
-                        log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), taskUUIDEnum.getTaskId());
+                        uploadDataService.numberBatchReset(taskId, performanceInfo.getPhoneNum());
+                        log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), taskId);
                     }
                 } else {
-                    uploadDataService.numberBatchReset(taskUUIDEnum.getTaskId(), performanceInfo.getPhoneNum());
-                    log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), taskUUIDEnum.getTaskId());
+                    uploadDataService.numberBatchReset(taskId, performanceInfo.getPhoneNum());
+                    log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), taskId);
                 }
             }
         } catch (Exception e) {

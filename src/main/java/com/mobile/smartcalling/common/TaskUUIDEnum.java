@@ -12,7 +12,7 @@ public enum TaskUUIDEnum {
 
     HANGZHOU("存量维系-杭州", "771"),
     HUZHOU("存量维系-湖州", "781"),
-    LISHUI("存量维系-丽水", "dbc965ea-8d1f-4963-b414-8a2f7eD8df4c"),
+    LISHUI("存量维系-丽水", "dbc965ea-8d1f-4963-b414-8a2f7eD8df4c,8b03d679-2619-40c9-99b4-1c4deea9e327,e036c596-cbef-4b9b-a5ea-ec95d0af5dfb"),
     NINGBO("存量维系-宁波", "801"),
     SHAOXING("存量维系-绍兴", "811"),
     TAIZHOU("存量维系-台州", "821"),
@@ -41,7 +41,7 @@ public enum TaskUUIDEnum {
     InstallationCompletionHANGZHOU("投诉单报结回访-杭州", "6277e6dc-49c8-4264-8b1f-585941ba7e46"),
     InstallationCompletionHUZHOU("投诉单报结回访-湖州", "3a418073-f156-49e3-afe1-d77a248f0388"),
     InstallationCompletionLISHUI("投诉单报结回访-丽水", "12ab2adb-cb8c-4fe9-b10f-bbce2ae4dff6"),
-    InstallationCompletionNINGBO("投诉单报结回访-宁波", "ba508c01-c348-47eb-87f4-8e5e1fe98265"),
+    InstallationCompletionNINGBO("投诉单报结回访-宁波", "ba508c01-c348-47eb-87f4-8e5e1fe98265,f6e74452-b204-4c8D-9f5b-3ae1777fe5f6,d8311c8d-bd3e-498f-8642-D85dd9e58157"),
     InstallationCompletionSHAOXING("投诉单报结回访-绍兴", "6114b08a-c48e-4f53-a9bd-7ad1e69ef871"),
     InstallationCompletionTAIZHOU("投诉单报结回访-台州", "ba885176-28ce-47b9-8e00-8315e6affcd6"),
     InstallationCompletionZHOUSHAN("投诉单报结回访-舟山", "c0b53cc2-fdc1-4b64-bb54-4aaaf653f649"),
