@@ -160,6 +160,18 @@ public class CallbackServiceimpl implements ICallbackSevice {
                         //   ResultDB resultDB = new ResultDB();
                         ResultDB resultDB = newStockMaintenanceType(callRecordData);
                         log.info("存量维系回调信息入库结果{}", resultDB);
+                        try {
+                            if(null != resultDB){
+                                String ds = resultDB.getDs();
+                                log.info("ResultDB     ds 是：{}",ds);
+                                resultDBDao.createPartition(ds);
+                                log.info("ResultDB  分区表已经构建 ");
+                            }
+
+                        }catch (Exception e){
+                            log.info("ResultDB  分区表创建失败：{}",e);
+
+                        }
                         resultDBDao.insert(resultDB);
                     }
                     if (taskName.contains("装机单竣工回访")) {
