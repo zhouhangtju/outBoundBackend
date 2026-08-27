@@ -104,8 +104,15 @@ public class CallbackServiceimpl implements ICallbackSevice {
                             .orElse("");
 
                     //装机单竣工回访-杭州
-                    String taskName = Optional.ofNullable(task).map(NewCallbackData.Task::getName).orElse("");
-                    log.info("================ taskName: {}",taskName);
+//                    String taskName = Optional.ofNullable(task).map(NewCallbackData.Task::getName).orElse("");
+//                    log.info("================ taskName: {}",taskName);
+
+
+                    String taskId = Optional.ofNullable(task).map(NewCallbackData.Task::getId).orElse("");
+                    String taskName = TaskUUIDEnum.getTaskNameByTaskId(taskId);
+                    log.info("taskId: {}================ taskName: {}",taskId,taskName);
+
+
 
 
                     Integer status = callRecordData.getStatus();
@@ -173,6 +180,11 @@ public class CallbackServiceimpl implements ICallbackSevice {
 
                         }
                         resultDBDao.insert(resultDB);
+
+                        resultDto = newCheckInstallationCompletion(callRecordData);
+                        resultDto.setOrderid(orderId);
+                        log.info("存量维系场景结果{}", resultDto);
+                        uploadDataService.uploadResult(resultDto, task.getName());
                     }
                     if (taskName.contains("装机单竣工回访")) {
                         //RemoteCallResultDto resultDto = checkInstallationCompletion(callbackData);

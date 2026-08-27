@@ -1,5 +1,9 @@
 package com.mobile.smartcalling.common;
 
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
 public enum TaskUUIDEnum {
     INSTALLHANGZHOU("装机单竣工回访-杭州", "a8e7c2b2-23ac-4986-8346-67735605dd5c"),
     INSTALLHUZHOU("装机单竣工回访-湖州", "e7c484aa-db16-486d-ac8c-534658e65139"),
@@ -47,15 +51,58 @@ public enum TaskUUIDEnum {
     InstallationCompletionZHOUSHAN("投诉单报结回访-舟山", "c0b53cc2-fdc1-4b64-bb54-4aaaf653f649"),
     InstallationCompletionJIAXING("投诉单报结回访-嘉兴", "371c444a-4f07-451f-8b78-7bf57a6b4f94");
 
+
+
     private final String taskName;
     private final String taskId;
+    private final List<String> taskIdList;
+    private final AtomicInteger counter = new AtomicInteger(0);
+
+
+    private static final Map<String, String> TASK_ID_TO_NAME_MAP;
+
+    static {
+        Map<String, String> map = new HashMap<>();
+        for (TaskUUIDEnum task : values()) {
+            for (String id : task.taskIdList) {
+                map.put(id, task.taskName);
+            }
+        }
+        TASK_ID_TO_NAME_MAP = Collections.unmodifiableMap(map);
+    }
+
 
     TaskUUIDEnum(String taskName, String taskId) {
         this.taskName = taskName;
         this.taskId = taskId;
+        this.taskIdList = (taskId == null || taskId.trim().isEmpty())
+                ? Collections.emptyList()
+                : Arrays.stream(taskId.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
-    // 通过完整任务名称查找对应的枚举实例
+    /**
+     * 轮询获取下一个taskId（线程安全）
+     * 单ID场景：始终返回同一个
+     * 多ID场景：按 0,1,2,0,1,2... 轮询
+     */
+    public String getNextTaskId() {
+        if (taskIdList.isEmpty()) {
+            return null;
+        }
+        if (taskIdList.size() == 1) {
+            return taskIdList.get(0);
+        }
+        int idx = Math.floorMod(counter.getAndIncrement(), taskIdList.size());
+        return taskIdList.get(idx);
+    }
+
+
+    public String getTaskName() { return taskName; }
+    public String getTaskId() { return taskId; }
+
     public static TaskUUIDEnum fromTaskName(String taskName) {
         for (TaskUUIDEnum task : values()) {
             if (task.taskName.equals(taskName)) {
@@ -66,22 +113,22 @@ public enum TaskUUIDEnum {
     }
 
 
-    // 通过id查找对应的名称
-    public static TaskUUIDEnum fromTaskID(String taskId) {
-        for (TaskUUIDEnum task : values()) {
-            if (task.taskId.equals(taskId)) {
-                return task;
-            }
+    public static String getTaskNameByTaskId(String taskId) {
+        if (taskId == null || taskId.trim().isEmpty()) {
+            return null;
         }
-        throw new IllegalArgumentException("未找到对应任务: " + taskId);
+        return TASK_ID_TO_NAME_MAP.get(taskId.trim());
     }
 
-    // Getters
-    public String getTaskId() {
-        return taskId;
-    }
+    public static void main(String[] args) {
 
-    public String getTaskName() {
-        return taskName;
+        String name1 = TaskUUIDEnum.getTaskNameByTaskId("771");
+        System.out.println(name1);
+
+        String name2 = TaskUUIDEnum.getTaskNameByTaskId("ba508c01-c348-47eb-87f4-8e5e1fe98265");
+        System.out.println(name2);
+
+
+
     }
 }

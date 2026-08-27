@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/openapi")
@@ -102,6 +103,20 @@ public class OpenApiController {
         return result;
     }
 
+    @GetMapping("/test")
+    public String test(@RequestParam(name = "taskName", defaultValue = "", required = false) String taskName){
+
+        TaskUUIDEnum taskUUIDEnum = TaskUUIDEnum.fromTaskName(taskName);
+
+        String targetTaskId = taskUUIDEnum.getNextTaskId();
+
+        System.out.println(targetTaskId);
+
+        log.info("targetTaskId: {}",targetTaskId);
+
+        return targetTaskId;
+    }
+
     @GetMapping("/remove/poor-quality-dispatch/today/phone/caching")
     public String removeTodayPoorQualityDispatchPhoneByRedis(@RequestParam(name = "phone", defaultValue = "phone", required = false) String phone) {
         return redisUtil.removeTodayPoorQualityDispatchPhone(phone);
@@ -116,10 +131,15 @@ public class OpenApiController {
             queryWrapper.eq(TaskPhone::getTaskName, taskUUIDEnum.getTaskName());
             List<TaskPhone> taskPhones = taskPhoneDao.selectList(queryWrapper);
 
-            String taskId = taskUUIDEnum.getTaskId();
-            String[] split = taskId.split(",");
-            int index = RandomUtil.randomInt(0, split.length);
-            taskId = split[index];
+            String phoneStr = Optional.ofNullable(performanceInfo)
+                    .map(PerformanceInfo::getPhoneNum)
+                    .orElse("");
+
+            String targetTaskId = Optional.ofNullable(taskUUIDEnum)
+                    .map(TaskUUIDEnum::getNextTaskId)
+                    .orElse("");
+            log.info("========================= asyncUploadData phone: {} targetTaskId: {}", phoneStr,targetTaskId);
+
 
 
             if (taskPhones.size() == 0) {
@@ -136,7 +156,7 @@ public class OpenApiController {
                 contactData.setSort(20);
                 data.add(contactData);
                 newResultRequest.setData(data);
-                uploadDataService.newUploadData(newResultRequest, taskId);
+                uploadDataService.newUploadData(newResultRequest, targetTaskId);
                 phone.setPhone(performanceInfo.getPhoneNum());
                 phone.setTaskName(taskUUIDEnum.getTaskName());
                 if (performanceInfo.getCallScene().equals("质差派单")) {
@@ -152,12 +172,12 @@ public class OpenApiController {
                         log.info("{}此号码今天已进行过质差派单外呼", performanceInfo.getPhoneNum());
                     } else {
                         redisUtil.markPhoneCalledToday(performanceInfo.getPhoneNum());
-                        uploadDataService.numberBatchReset(taskId, performanceInfo.getPhoneNum());
-                        log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), taskId);
+                        uploadDataService.numberBatchReset(targetTaskId, performanceInfo.getPhoneNum());
+                        log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), targetTaskId);
                     }
                 } else {
-                    uploadDataService.numberBatchReset(taskId, performanceInfo.getPhoneNum());
-                    log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), taskId);
+                    uploadDataService.numberBatchReset(targetTaskId, performanceInfo.getPhoneNum());
+                    log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), targetTaskId);
                 }
             }
         } catch (Exception e) {

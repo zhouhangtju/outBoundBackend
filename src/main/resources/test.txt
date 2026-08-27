@@ -1,0 +1,56 @@
+{
+  "count": 3,
+  "data": [
+    {
+      "calldate": "2025-10-31 10:00:00",
+      "status": 100,
+      "callid": "CALL_001",
+      "number_data": {
+        "number": "13800138001",
+        "province": "浙江省",
+        "city": "杭州市"
+      },
+      "task": {
+        "id": "TASK_001",
+        "name": "存量维系外呼任务"
+      },
+      "customer_data": {
+        "extra": "ORDER_20251031_001"
+      }
+    },
+    {
+      "calldate": "2025-10-31 10:05:00",
+      "status": 200,
+      "callid": "CALL_002",
+      "number_data": {
+        "number": "13900139002",
+        "province": "江苏省",
+        "city": "南京市"
+      },
+      "task": {
+        "id": "TASK_002",
+        "name": "装机单竣工回访确认"
+      },
+      "customer_data": {
+        "extra": "ORDER_20251031_002"
+      }
+    },
+    {
+      "calldate": "2025-10-31 10:10:00",
+      "status": 300,
+      "callid": "CALL_003",
+      "number_data": {
+        "number": "13700137003",
+        "province": "广东省",
+        "city": "深圳市"
+      },
+      "task": {
+        "id": "TASK_003",
+        "name": "质差派单调度处理"
+      },
+      "customer_data": {
+        "extra": "ORDER_20251031_003"
+      }
+    }
+  ]
+}
