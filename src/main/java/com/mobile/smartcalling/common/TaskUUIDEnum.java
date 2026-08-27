@@ -45,7 +45,7 @@ public enum TaskUUIDEnum {
     InstallationCompletionHANGZHOU("投诉单报结回访-杭州", "6277e6dc-49c8-4264-8b1f-585941ba7e46"),
     InstallationCompletionHUZHOU("投诉单报结回访-湖州", "3a418073-f156-49e3-afe1-d77a248f0388"),
     InstallationCompletionLISHUI("投诉单报结回访-丽水", "12ab2adb-cb8c-4fe9-b10f-bbce2ae4dff6"),
-    InstallationCompletionNINGBO("投诉单报结回访-宁波", "ba508c01-c348-47eb-87f4-8e5e1fe98265,f6e74452-b204-4c8D-9f5b-3ae1777fe5f6,d8311c8d-bd3e-498f-8642-D85dd9e58157"),
+    InstallationCompletionNINGBO("投诉单报结回访-宁波", "ba508c01-c348-47eb-87f4-8e5e1fe98265,f6e74452-b204-4c80-9f5b-3ae1777fe5f6,d8311c8d-bd3e-498f-8642-085dd9e58157"),
     InstallationCompletionSHAOXING("投诉单报结回访-绍兴", "6114b08a-c48e-4f53-a9bd-7ad1e69ef871"),
     InstallationCompletionTAIZHOU("投诉单报结回访-台州", "ba885176-28ce-47b9-8e00-8315e6affcd6"),
     InstallationCompletionZHOUSHAN("投诉单报结回访-舟山", "c0b53cc2-fdc1-4b64-bb54-4aaaf653f649"),
