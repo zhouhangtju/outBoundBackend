@@ -103,16 +103,20 @@ public class CallbackServiceimpl implements ICallbackSevice {
                             .map(NewCallbackData.CallRecordData::getCalldate)
                             .orElse("");
 
-                    //装机单竣工回访-杭州
-//                    String taskName = Optional.ofNullable(task).map(NewCallbackData.Task::getName).orElse("");
-//                    log.info("================ taskName: {}",taskName);
-
-
                     String taskId = Optional.ofNullable(task).map(NewCallbackData.Task::getId).orElse("");
+                    //装机单竣工回访-杭州
                     String taskName = TaskUUIDEnum.getTaskNameByTaskId(taskId);
                     log.info("taskId: {}================ taskName: {}",taskId,taskName);
 
+                    String[] taskArray = taskName.split("-", 2);
 
+
+                    String taskStr = "";
+                    String taskCity = "";
+                    if (ArrayUtil.isNotEmpty(taskArray) && taskArray.length == 2) {
+                         taskStr = taskArray[0];
+                         taskCity = taskArray[1];
+                    }
 
 
                     Integer status = callRecordData.getStatus();
@@ -137,7 +141,6 @@ public class CallbackServiceimpl implements ICallbackSevice {
                         }
                     }
 
-                    String[] taskArray = taskName.split("-", 2);
 
 
 //                    boolean phoneExists = redisUtil.isPhoneExists(phoneNumber);
@@ -184,28 +187,28 @@ public class CallbackServiceimpl implements ICallbackSevice {
                         resultDto = newCheckInstallationCompletion(callRecordData);
                         resultDto.setOrderid(orderId);
                         log.info("存量维系场景结果{}", resultDto);
-                        uploadDataService.uploadResult(resultDto, task.getName());
+                        uploadDataService.uploadResult(resultDto, taskStr);
                     }
                     if (taskName.contains("装机单竣工回访")) {
                         //RemoteCallResultDto resultDto = checkInstallationCompletion(callbackData);
                         resultDto = newCheckInstallationCompletion(callRecordData);
                         resultDto.setOrderid(orderId);
                         log.info("装机单竣工回访场景结果{}", resultDto);
-                        uploadDataService.uploadResult(resultDto, task.getName());
+                        uploadDataService.uploadResult(resultDto, taskStr);
                     }
                     if (taskName.contains("投诉单报结")) {
                         //RemoteCallResultDto resultDto = followUpResolvedComplaints(callbackData);
                         resultDto = newFollowUpResolvedComplaints(callRecordData);
                         resultDto.setOrderid(orderId);
                         log.info("投诉单报结回访场景结果{}", resultDto);
-                        uploadDataService.uploadResult(resultDto, task.getName());
+                        uploadDataService.uploadResult(resultDto, taskStr);
                     }
                     if (taskName.contains("质差修复已上门")) {
                         // RemoteCallResultDto resultDto = sendPoorQualitySurvey(callbackData);
                         resultDto = newSendPoorQualitySurvey(callRecordData);
                         resultDto.setOrderid(orderId);
                         log.info("质差修复已上门场景结果{}", resultDto);
-                        uploadDataService.uploadResult(resultDto, task.getName());
+                        uploadDataService.uploadResult(resultDto, taskStr);
                     }
                     if (taskName.contains("质差派单")) {
                         //RemoteCallResultDto resultDto = createPoorQualityDispatchSurvey(callbackData);
@@ -224,8 +227,6 @@ public class CallbackServiceimpl implements ICallbackSevice {
 
                         // 将taskName进行分割  得到的外呼名称和城市
                         if (ArrayUtil.isNotEmpty(taskArray) && taskArray.length == 2) {
-                            String taskStr = taskArray[0];
-                            String taskCity = taskArray[1];
                             remoteCallResult.setTask(StringUtils.defaultString(taskStr));
                             remoteCallResult.setCity(StringUtils.defaultString(taskCity));
                         }
