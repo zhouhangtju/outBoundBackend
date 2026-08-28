@@ -16,7 +16,7 @@ public enum TaskUUIDEnum {
 
     HANGZHOU("存量维系-杭州", "771"),
     HUZHOU("存量维系-湖州", "781"),
-    LISHUI("存量维系-丽水", "dbc965ea-8d1f-4963-b414-8a2f7eD8df4c,8b03d679-2619-40c9-99b4-1c4deea9e327,e036c596-cbef-4b9b-a5ea-ec95d0af5dfb"),
+    LISHUI("存量维系-丽水", "dbc965ea-8d1f-4963-b414-8a2f7e08df4c,8b03d679-2619-40c9-99b4-1c4deea9e327,e036c596-cbef-4b9b-a5ea-ec95d0af5dfb"),
     NINGBO("存量维系-宁波", "801"),
     SHAOXING("存量维系-绍兴", "811"),
     TAIZHOU("存量维系-台州", "821"),
