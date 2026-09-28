@@ -147,4 +147,75 @@ public class FtpUtil {
             }
         }
     }
+
+    public static String downLoadNew(Map<String, Object> map) {
+        FTPClient ftpClient = new FTPClient();
+        Map<String, List<String>> data = new HashMap<>();
+        String path ="";
+        try {
+            // fileName-ds
+            log.info("===ftp downLoad: {}", JSON.toJSONString(map));
+            String connectionString = (String) map.get("ConnectionString"); // FTP服务器地址
+            String [] connection = connectionString.split("@");
+            String[] remoteAddr = connection[1].split(":");
+            String server = remoteAddr[0];
+            int port = Integer.valueOf(remoteAddr[1]); // FTP服务器端口号
+            String username = (String) map.get("userName"); // FTP登录用户名
+            String password = (String) map.get("password"); // FTP登录密码
+            String remoteDir = (String) map.get("Path"); // 远程路径
+            String localPath = "/usr/local/remotecall/files/"; // 本地文件保存路径
+            List<Object> files = (List)map.get("files");  //文件名字
+
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyyMMdd");
+            log.info("===ftp start connect: {},{}", server, port);
+            ftpClient.connect(server, port);
+            ftpClient.login(username, password);
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            ftpClient.setRemoteVerificationEnabled(false);
+            //设置传输超时时间为300秒
+            ftpClient.setDataTimeout(1000*300);
+            //设置超时
+            ftpClient.setSoTimeout(1000*300);
+            //这句代码进行设置缓冲大小,这样的话就比原来快很多了
+            ftpClient.setBufferSize(100000);
+            boolean connected = ftpClient.isConnected();
+            log.info("ftp连接情况{}",connected);
+
+//                String dataStartTime = (String) file.get("dataStartTime");
+//                String ds = sdf2.format(sdf1.parse(dataStartTime));
+            String fileName = String.valueOf(files.get(0));
+            OutputStream outputStream = new FileOutputStream(localPath + fileName);
+            boolean success = ftpClient.retrieveFile(remoteDir + fileName, outputStream);
+            outputStream.close();
+
+            if (success) {
+                log.info("File {} downloaded successfully.  已经保存到服务器：{}", (remoteDir + fileName), path);
+//                    List<String> dateStr = new ArrayList<>(2);
+////                    dateStr.add(ds);
+////                    dateStr.add(dataStartTime);
+//                    data.put(localPath + fileName, dateStr);
+                path = localPath + fileName;
+            } else {
+                log.error("File {} download failed.", (remoteDir + fileName));
+            }
+
+
+        } catch (Exception e) {
+            log.error("{}", e);
+        } finally {
+            try {
+                if (ftpClient.isConnected()) {
+                    ftpClient.logout();
+                    ftpClient.disconnect();
+                }
+            } catch (IOException e) {
+                log.error("close ftp client error", e);
+            }
+        }
+
+        return path;
+
+    }
 }

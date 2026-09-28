@@ -155,7 +155,8 @@ public class DemoController {
         Date time = DateUtils.addDays(date,-1);
         String ds = sdf.format(time);
         log.info("文件名字===={}_OutboundCallList",ds);
-        files.add("2025-06-27_OutboundCallList.csv");
+//        files.add("2025-06-27_OutboundCallList.csv");
+        files.add(ds + "_OutboundCallList.csv");
         map.put("files",files);
         log.info(map.toString());
         try {

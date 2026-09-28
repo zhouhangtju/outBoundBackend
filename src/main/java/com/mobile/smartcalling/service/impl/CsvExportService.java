@@ -13,6 +13,7 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -24,6 +25,8 @@ public class CsvExportService {
     private FtpService ftpService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+    private static final DateTimeFormatter HOUR_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHH");
 
     /**
      * 生成CSV文件并上传到FTP
@@ -61,6 +64,37 @@ public class CsvExportService {
             log.warn("临时文件删除失败: {}", tempFile.getAbsolutePath());
         }
     }
+
+    public void exportAndUploadCsvSatisfaction(List<RemoteCallResult> dataList, TaskTypeEnum taskType) throws IOException {
+        if (dataList == null || dataList.isEmpty()) {
+            log.warn("任务类型 {} 没有数据，跳过生成", taskType.getChineseName());
+            return;
+        }
+
+        String dateStr = LocalDateTime.now().format(HOUR_FORMATTER);
+        String fileName = String.format("%s_%s.csv", taskType.getFilePrefix(), dateStr);
+
+        File tempFile = File.createTempFile("csv_", ".csv");
+        try (FileOutputStream fos = new FileOutputStream(tempFile);
+             OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
+             CSVPrinter printer = new CSVPrinter(osw, CSVFormat.DEFAULT.builder()
+                     .setHeader(getHeaders(taskType))
+                     .build())) {
+
+            for (RemoteCallResult record : dataList) {
+                printer.printRecord(getRowData(record, taskType));
+            }
+            printer.flush();
+        }
+
+        ftpService.uploadFileSatisfaction(tempFile, fileName);
+        log.info("成功生成并上传CSV文件: {}", fileName);
+
+        if (!tempFile.delete()) {
+            log.warn("临时文件删除失败: {}", tempFile.getAbsolutePath());
+        }
+    }
+
 
     /**
      * 获取CSV表头
