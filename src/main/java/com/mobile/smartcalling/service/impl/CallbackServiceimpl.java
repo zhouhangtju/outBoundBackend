@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SecureUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.mobile.smartcalling.common.*;
 import com.mobile.smartcalling.dao.RemoteCallResultDao;
@@ -22,6 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -54,6 +57,14 @@ public class CallbackServiceimpl implements ICallbackSevice {
     private RestTemplate restTemplate;
     @Autowired
     private RedisUtil redisUtil;
+
+
+    @Value("${portrait.api.url:http://188.108.151.212:9681/api/outbound/result}")
+    private String portraitApiUrl;
+    @Value("${portrait.api.app-key:dcf8a0f3f3bbf45188ec18686433cff6}")
+    private String portraitAppKey;
+    @Value("${portrait.api.app-secret:a1e9a20f6aa917e653cc5658b6843a41}")
+    private String portraitAppSecret;
 
 
     //判断对象值是否为空
@@ -162,6 +173,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     log.info("==============>orderId 获取到的宽带账号的值是：{}", broadband);
 
                     //@TODO 构建RemoteCallResult 表 入库 加入callDate 字段
+                    // TODO@ 如果是丽水  还需要上传新的一个接口
                     RemoteCallResult remoteCallResult = new RemoteCallResult().setPhoneNum(phoneNumber).setOrderId(orderId).setCustomerAccount(broadband).setCallDate(callDate).setCreateTime(new Date());
 
                     RemoteCallResultDto resultDto = new RemoteCallResultDto();
@@ -244,6 +256,10 @@ public class CallbackServiceimpl implements ICallbackSevice {
                                 .setTag9(StringUtils.defaultString(resultDto.getQ9()))
                                 .setTag10(StringUtils.defaultString(resultDto.getQ10()))
                                 .setTag11(StringUtils.defaultString(resultDto.getQ11()));
+                    }
+                    // 不分场景  是丽水的 再去调这个接口
+                    if(taskCity.equals("丽水")){
+                        uploadPortraitResult(taskStr, taskCity, orderId, phoneNumber, broadband, resultDto);
                     }
 
                     remoteCallResultList.add(remoteCallResult);
@@ -686,5 +702,67 @@ public class CallbackServiceimpl implements ICallbackSevice {
             log.info("时间转换失败");
         }
         return null;
+    }
+
+
+    public void uploadPortraitResult(String callScene, String city, String orderid,
+                                     String phone, String account, RemoteCallResultDto resultDto) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("orderid", StringUtils.defaultString(orderid));
+            body.put("city", StringUtils.defaultString(city));
+            body.put("call_scene", StringUtils.defaultString(callScene));
+            body.put("account", StringUtils.defaultString(account));
+            body.put("phone", StringUtils.defaultString(phone));
+
+            putIfNotBlank(body, "q1", resultDto.getQ1());
+            putIfNotBlank(body, "q2", resultDto.getQ2());
+            putIfNotBlank(body, "q3", resultDto.getQ3());
+            putIfNotBlank(body, "q4", resultDto.getQ4());
+            putIfNotBlank(body, "q5", resultDto.getQ5());
+            putIfNotBlank(body, "q6", resultDto.getQ6());
+            putIfNotBlank(body, "q7", resultDto.getQ7());
+            putIfNotBlank(body, "q8", resultDto.getQ8());
+            putIfNotBlank(body, "q9", resultDto.getQ9());
+            putIfNotBlank(body, "q10", resultDto.getQ10());
+            putIfNotBlank(body, "q11", resultDto.getQ11());
+
+
+
+
+            long requestTime = System.currentTimeMillis();
+            String sign = SecureUtil.md5(portraitAppKey + portraitAppSecret + requestTime);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("appKey", portraitAppKey);
+            headers.set("requestTime", String.valueOf(requestTime));
+            headers.set("sign", sign);
+
+            HttpEntity<Map<String, Object>> httpEntity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(portraitApiUrl, httpEntity, String.class);
+            log.info("=======================  丽水外呼结果上报家客用户精准画像系统, orderid={}, phone={}, status={}, response={}",
+                    orderid, phone, response.getStatusCodeValue(), response.getBody());
+
+            JSONObject json = JSONObject.parseObject(response.getBody());
+            if (json == null || !"0".equals(json.getString("result"))) {
+
+                log.error("================= 丽水外呼结果上报返回失败, orderid={}, response={}", orderid, response.getBody());
+            }
+
+
+
+
+
+        } catch (Exception e) {
+            log.error("==================== 丽水外呼结果上报家客用户精准画像系统异常, orderid={}, phone={}", orderid, phone, e);
+        }
+    }
+
+
+    private void putIfNotBlank(Map<String, Object> body, String key, String value) {
+        if (StringUtils.isNotBlank(value)) {
+            body.put(key, value);
+        }
     }
 }
