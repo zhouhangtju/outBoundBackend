@@ -259,6 +259,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     }
                     // 不分场景  是丽水的 再去调这个接口
                     if(taskCity.equals("丽水")){
+                        log.info("==============  是丽水 调用淡出上传");
                         uploadPortraitResult(taskStr, taskCity, orderId, phoneNumber, broadband, resultDto);
                     }
 
