@@ -740,6 +740,8 @@ public class CallbackServiceimpl implements ICallbackSevice {
             headers.set("requestTime", String.valueOf(requestTime));
             headers.set("sign", sign);
 
+            log.info("调用画像接口请求参数 - url: {}, headers: {}, body: {}", portraitApiUrl, headers, body);
+
             HttpEntity<Map<String, Object>> httpEntity = new HttpEntity<>(body, headers);
             ResponseEntity<String> response = restTemplate.postForEntity(portraitApiUrl, httpEntity, String.class);
             log.info("=======================  丽水外呼结果上报家客用户精准画像系统, orderid={}, phone={}, status={}, response={}",

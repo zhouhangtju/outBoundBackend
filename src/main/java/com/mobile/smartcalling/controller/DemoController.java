@@ -1,10 +1,12 @@
 package com.mobile.smartcalling.controller;
 
 import com.mobile.smartcalling.dao.TaskPhoneDao;
+import com.mobile.smartcalling.dto.RemoteCallResultDto;
 import com.mobile.smartcalling.entity.TaskPhone;
 import com.mobile.smartcalling.service.IReadCSVService;
 import com.mobile.smartcalling.service.UploadCSVService;
 import com.mobile.smartcalling.service.UploadDataService;
+import com.mobile.smartcalling.service.impl.CallbackServiceimpl;
 import com.mobile.smartcalling.task.ExistUsersResultTask;
 import com.mobile.smartcalling.task.OutboundCallListTask;
 import com.mobile.smartcalling.util.FtpUtil;
@@ -46,6 +48,9 @@ public class DemoController {
 
     @Autowired
     private ExistUsersResultTask existUsersResultTask;
+
+    @Autowired
+    private CallbackServiceimpl callbackServiceimpl;
 
 //    @Autowired
 //    private ConfigInfoDao configInfoDao;
@@ -203,6 +208,30 @@ public class DemoController {
         } catch (Exception e) {
             log.error("手动触发 ExistUsersResultTask 失败", e);
             return "ExistUsersResultTask 执行失败: " + e.getMessage();
+        }
+    }
+
+    //手动测试丽水外呼结果上报家客用户精准画像系统
+    @GetMapping("/testPortraitReport")
+    public String testPortraitReport(@RequestParam(value = "phone", defaultValue = "15100000000") String phone) {
+        log.info("========================  测试 uploadPortraitResult, phone={}", phone);
+        try {
+
+            RemoteCallResultDto dto = new RemoteCallResultDto();
+            dto.setQ1("10");
+            dto.setQ2("10");
+            dto.setQ3("10");
+            dto.setQ4("10");
+            dto.setQ5("上网速度慢，看视频卡顿");
+            dto.setQ7("是");
+
+            String orderid = "TEST" + System.currentTimeMillis();
+            callbackServiceimpl.uploadPortraitResult("存量维系", "丽水", orderid, phone, "TEST_ACCOUNT_001", dto);
+            return "已调用 uploadPortraitResult, orderid=" + orderid + "，上报结果看日志";
+
+        } catch (Exception e) {
+            log.error("手动测试 uploadPortraitResult 失败", e);
+            return "调用失败: " + e.getMessage();
         }
     }
 
