@@ -56,12 +56,16 @@ public class ExistUsersResultTask {
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MILLISECOND, 0);
             Date todayStart = cal.getTime();
-            Date yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000L);
+
+
+            Calendar tomorrowCal = (Calendar) cal.clone();
+            tomorrowCal.add(Calendar.DAY_OF_MONTH, 1);
+            Date tomorrowStart = tomorrowCal.getTime();
 
             LambdaQueryWrapper<RemoteCallResult> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(RemoteCallResult::getTask, CommonBusinessStrEnum.SATISFACTION_SURVEY_FOLLOW_UP_DD)
-                    .ge(RemoteCallResult::getCreateTime, yesterdayStart)
-                    .lt(RemoteCallResult::getCreateTime, todayStart);
+                    .ge(RemoteCallResult::getCreateTime, todayStart)
+                    .lt(RemoteCallResult::getCreateTime, tomorrowStart);
 
             List<RemoteCallResult> dataList = remoteCallResultDao.selectList(queryWrapper);
             log.info("查询到昨天存量维系数据 {} 条", dataList.size());
@@ -127,6 +131,8 @@ public class ExistUsersResultTask {
      * 上传文件到指定FTP目录（带结果校验，失败抛异常）
      */
     private void uploadToFtp(File file) throws Exception {
+
+        log.info("存量维系外呼结果开始上传文件到FTP: {}", file.getName());
         FTPClient ftpClient = new FTPClient();
         try {
             ftpClient.setConnectTimeout(10000);
@@ -159,11 +165,11 @@ public class ExistUsersResultTask {
                 uploaded = ftpClient.storeFile(file.getName(), fis);
             }
             if (uploaded) {
-                log.info("文件上传成功: {}", file.getName());
+                log.info("ExistUsersResultTask  文件上传成功: {}", file.getName());
             } else {
-                log.error("文件上传失败: {} | 回复码: {} | 回复信息: {}",
+                log.error("ExistUsersResultTask  文件上传失败: {} | 回复码: {} | 回复信息: {}",
                         file.getName(), ftpClient.getReplyCode(), ftpClient.getReplyString());
-                throw new RuntimeException(String.format("FTP上传失败: %s | 回复码: %s | 回复信息: %s",
+                throw new RuntimeException(String.format("ExistUsersResultTask  FTP上传失败: %s | 回复码: %s | 回复信息: %s",
                         file.getName(), ftpClient.getReplyCode(), ftpClient.getReplyString()));
             }
         } finally {

@@ -5,6 +5,8 @@ import com.mobile.smartcalling.entity.TaskPhone;
 import com.mobile.smartcalling.service.IReadCSVService;
 import com.mobile.smartcalling.service.UploadCSVService;
 import com.mobile.smartcalling.service.UploadDataService;
+import com.mobile.smartcalling.task.ExistUsersResultTask;
+import com.mobile.smartcalling.task.OutboundCallListTask;
 import com.mobile.smartcalling.util.FtpUtil;
 import com.mobile.smartcalling.util.SftpUtil;
 import io.swagger.annotations.Api;
@@ -38,6 +40,12 @@ public class DemoController {
 
     @Autowired
     private UploadDataService uploadDataService;
+
+    @Autowired
+    private OutboundCallListTask outboundCallListTask;
+
+    @Autowired
+    private ExistUsersResultTask existUsersResultTask;
 
 //    @Autowired
 //    private ConfigInfoDao configInfoDao;
@@ -170,6 +178,32 @@ public class DemoController {
     @ApiOperation("测试ftp上传文件")
     public void testUploadFtp() {
         FtpUtil.upLoad("10.76.148.39",21,"dcpp","D8is_F7n61#15","usr/local/remotecall/files/test.csv","/data1/dcpp/ZXAICL");
+    }
+
+    //手动触发存量维系外呼清单任务(拉取昨日OutboundCallList.csv并逐行调用performanceInfo)
+    @GetMapping("/triggerOutboundCallList")
+    public String triggerOutboundCallList() {
+        log.info("=====================================  手动触发 OutboundCallListTask 开始");
+        try {
+            outboundCallListTask.execute();
+            return "OutboundCallListTask 执行完成，详见日志";
+        } catch (Exception e) {
+            log.error("手动触发 OutboundCallListTask 失败", e);
+            return "OutboundCallListTask 执行失败: " + e.getMessage();
+        }
+    }
+
+    //手动触发存量维系结果回传任务(查询昨日存量维系数据生成CSV并上传FTP)
+    @GetMapping("/triggerExistUsersResult")
+    public String triggerExistUsersResult() {
+        log.info("=================       手动触发 ExistUsersResultTask开始");
+        try {
+            existUsersResultTask.execute();
+            return "ExistUsersResultTask 执行完成，详见日志";
+        } catch (Exception e) {
+            log.error("手动触发 ExistUsersResultTask 失败", e);
+            return "ExistUsersResultTask 执行失败: " + e.getMessage();
+        }
     }
 
 //    @GetMapping("/testCall")

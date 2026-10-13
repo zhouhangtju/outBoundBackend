@@ -1,6 +1,7 @@
 package com.mobile.smartcalling.task;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
 import com.mobile.smartcalling.dto.CallBackResult;
 import com.mobile.smartcalling.dto.PerformanceInfo;
 import com.mobile.smartcalling.util.FtpUtil;
@@ -8,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -76,6 +80,8 @@ public class OutboundCallListTask {
                 return;
             }
 
+            log.info("准备调用性能信息接口，共{}条数据", dataList.size());
+
             callPerformanceInfo(dataList);
         } catch (Exception e) {
             log.error("存量维系外呼清单任务执行失败, fileName={}", fileName, e);
@@ -132,11 +138,16 @@ public class OutboundCallListTask {
         int success = 0;
         int fail = 0;
         if(CollUtil.isNotEmpty(dataList)){
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            log.info("=======================  开始调用performanceInfo 接口 ===================dataList 长度：{}",dataList.size());
             for (PerformanceInfo info : dataList) {
                 try {
-                    CallBackResult result = restTemplate.postForObject(performanceApiUrl, info, CallBackResult.class);
+                    HttpEntity<PerformanceInfo> entity = new HttpEntity<>(info, headers);
+                    CallBackResult result = restTemplate.postForObject(performanceApiUrl, entity, CallBackResult.class);
                     if (result != null && Boolean.TRUE.equals(result.getSuccess())) {
                         success++;
+                        log.info("============调用 performanceInfo 接口 成功==================");
                     } else {
                         fail++;
                         log.warn("调用 performanceInfo 接口返回失败, phoneNum={}, city={}, result={}",
