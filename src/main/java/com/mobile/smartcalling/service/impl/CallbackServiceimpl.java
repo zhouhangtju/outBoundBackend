@@ -181,20 +181,21 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     if (taskName.contains("存量维系")) {
                         //   ResultDB resultDB = new ResultDB();
                         ResultDB resultDB = newStockMaintenanceType(callRecordData);
-                        log.info("存量维系回调信息入库结果{}", resultDB);
-                        try {
-                            if(null != resultDB){
-                                String ds = resultDB.getDs();
-                                log.info("ResultDB     ds 是：{}",ds);
-                                resultDBDao.createPartition(ds);
-                                log.info("ResultDB  分区表已经构建 ");
-                            }
 
-                        }catch (Exception e){
-                            log.info("ResultDB  分区表创建失败：{}",e);
-
-                        }
+//                        try {
+//                            if(null != resultDB){
+//                                String ds = resultDB.getDs();
+//                                log.info("ResultDB     ds 是：{}",ds);
+//                                resultDBDao.createPartition(ds);
+//                                log.info("ResultDB  分区表已经构建 ");
+//                            }
+//
+//                        }catch (Exception e){
+//                            log.info("ResultDB  分区表创建失败：{}",e);
+//
+//                        }
                         resultDBDao.insert(resultDB);
+                        log.info("存量维系回调信息入库结果{}", resultDB);
 
                         resultDto = newCheckInstallationCompletion(callRecordData);
                         resultDto.setOrderid(orderId);
@@ -259,7 +260,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                     }
                     // 不分场景  是丽水的 再去调这个接口
                     if(taskCity.equals("丽水")){
-                        log.info("==============  是丽水 调用淡出上传");
+                        log.info("==============  是丽水 调用单独上传接口");
                         uploadPortraitResult(taskStr, taskCity, orderId, phoneNumber, broadband, resultDto);
                     }
 
