@@ -7,6 +7,7 @@ import com.mobile.smartcalling.entity.RemoteCallResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPReply;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -140,7 +141,22 @@ public class ExistUsersResultTask {
             ftpClient.setSoTimeout(300000);
 
             ftpClient.connect(FTP_HOST, FTP_PORT);
-            ftpClient.login(FTP_USERNAME, FTP_PASSWORD);
+//            ftpClient.login(FTP_USERNAME, FTP_PASSWORD);
+
+
+            int connectReply = ftpClient.getReplyCode();
+            if (!FTPReply.isPositiveCompletion(connectReply)) {
+                ftpClient.disconnect();
+                throw new RuntimeException(String.format("FTP连接被拒绝, host=%s, port=%d, replyCode=%d",
+                        FTP_HOST, FTP_PORT, connectReply));
+            }
+
+
+            boolean loginSuccess = ftpClient.login(FTP_USERNAME, FTP_PASSWORD);
+            if (!loginSuccess) {
+                throw new RuntimeException(String.format("FTP登录失败, user=%s, replyCode=%d, reply=%s",
+                        FTP_USERNAME, ftpClient.getReplyCode(), ftpClient.getReplyString()));
+            }
             ftpClient.enterLocalPassiveMode();
             ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
