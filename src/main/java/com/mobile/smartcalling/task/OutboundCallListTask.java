@@ -27,6 +27,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 存量维系外呼清单定时任务
@@ -43,6 +47,9 @@ public class OutboundCallListTask {
 
     @Value("${performance.api.url:http://127.0.0.1:8091/openapi/performanceInfo}")
     private String performanceApiUrl;
+
+    @Value("${performance.api.threads:10}")
+    private int performanceThreads;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -135,33 +142,60 @@ public class OutboundCallListTask {
     private void callPerformanceInfo(List<PerformanceInfo> dataList) {
 
         log.info("csv  读取完毕 PerformanceInfo参数组装完成了 开始调用performanceInfo 接口 ");
-        int success = 0;
-        int fail = 0;
-        if(CollUtil.isNotEmpty(dataList)){
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            log.info("=======================  开始调用performanceInfo 接口 ===================dataList 长度：{}",dataList.size());
-            for (PerformanceInfo info : dataList) {
+        if (CollUtil.isEmpty(dataList)) {
+            log.info("PerformanceInfo list 为空");
+            return;
+        }
+
+        log.info("=======================  开始调用performanceInfo 接口 ===================dataList 长度：{}，并发线程数：{}",
+                dataList.size(), performanceThreads);
+
+        AtomicInteger success = new AtomicInteger(0);
+        AtomicInteger fail = new AtomicInteger(0);
+        AtomicInteger finished = new AtomicInteger(0);
+        long startMillis = System.currentTimeMillis();
+
+        ExecutorService pool = Executors.newFixedThreadPool(performanceThreads);
+        CountDownLatch latch = new CountDownLatch(dataList.size());
+        for (PerformanceInfo info : dataList) {
+            pool.submit(() -> {
                 try {
+                    // HttpHeaders 非线程安全，每个任务单独构建（开销可忽略）
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_JSON);
                     HttpEntity<PerformanceInfo> entity = new HttpEntity<>(info, headers);
                     CallBackResult result = restTemplate.postForObject(performanceApiUrl, entity, CallBackResult.class);
                     if (result != null && Boolean.TRUE.equals(result.getSuccess())) {
-                        success++;
-                        log.info("============调用 performanceInfo 接口 成功==================");
+                        success.incrementAndGet();
                     } else {
-                        fail++;
+                        fail.incrementAndGet();
                         log.warn("调用 performanceInfo 接口返回失败, phoneNum={}, city={}, result={}",
                                 info.getPhoneNum(), info.getCity(), result);
                     }
                 } catch (Exception e) {
-                    fail++;
+                    fail.incrementAndGet();
                     log.error("调用 performanceInfo 接口异常, phoneNum={}, city={}", info.getPhoneNum(), info.getCity(), e);
+                } finally {
+                    int done = finished.incrementAndGet();
+                    latch.countDown();
+                    if (done % 2000 == 0) {
+                        log.info("performanceInfo 调用进度: {}/{}, 成功 {}, 失败 {}", done, dataList.size(), success.get(), fail.get());
+                    }
                 }
-            }
-        }else{
-            log.info("PerformanceInfo list 为空");
+            });
         }
 
-        log.info("存量维系外呼清单处理完成，共 {} 条，成功 {} 条，失败 {} 条", dataList.size(), success, fail);
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("performanceInfo 并发调用被中断", e);
+        } finally {
+            pool.shutdown();
+        }
+
+        long costSeconds = (System.currentTimeMillis() - startMillis) / 1000;
+        log.info("存量维系外呼清单处理完成，共 {} 条，成功 {} 条，失败 {} 条，耗时 {} 秒",
+                dataList.size(), success.get(), fail.get(), costSeconds);
     }
 }

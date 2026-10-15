@@ -69,7 +69,7 @@ public class ExistUsersResultTask {
                     .lt(RemoteCallResult::getCreateTime, tomorrowStart);
 
             List<RemoteCallResult> dataList = remoteCallResultDao.selectList(queryWrapper);
-            log.info("查询到昨天存量维系数据 {} 条", dataList.size());
+            log.info("查询到今天存量维系数据 {} 条", dataList.size());
 
             if (dataList.isEmpty()) {
                 log.info("没有需要回传的存量维系数据，任务结束");
@@ -138,7 +138,7 @@ public class ExistUsersResultTask {
         try {
             ftpClient.setConnectTimeout(10000);
             ftpClient.setDataTimeout(300000);
-            ftpClient.setSoTimeout(300000);
+            ftpClient.setDefaultTimeout(300000);
 
             ftpClient.connect(FTP_HOST, FTP_PORT);
 //            ftpClient.login(FTP_USERNAME, FTP_PASSWORD);

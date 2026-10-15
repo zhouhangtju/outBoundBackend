@@ -145,7 +145,7 @@ public class CallbackServiceimpl implements ICallbackSevice {
                             log.info("满足要求状态 【30天禁止外呼】手机号 {} 已加入禁止外呼 放入缓存，状态码: {}", phoneNumber, status);
                         }
 
-                        if (taskName.contains("质差派单")) {
+                        if (taskName.contains("质差派单") || taskName.contains("存量维系")) {
                             redisUtil.setPhoneByThirtyDays(phoneNumber);
                             log.info("满足要求状态 【30天禁止外呼】手机号 {} 已加入禁止外呼 放入缓存，状态码: {}", phoneNumber, status);
 
@@ -182,18 +182,21 @@ public class CallbackServiceimpl implements ICallbackSevice {
                         //   ResultDB resultDB = new ResultDB();
                         ResultDB resultDB = newStockMaintenanceType(callRecordData);
 
-//                        try {
-//                            if(null != resultDB){
-//                                String ds = resultDB.getDs();
-//                                log.info("ResultDB     ds 是：{}",ds);
-//                                resultDBDao.createPartition(ds);
-//                                log.info("ResultDB  分区表已经构建 ");
-//                            }
-//
-//                        }catch (Exception e){
-//                            log.info("ResultDB  分区表创建失败：{}",e);
-//
-//                        }
+                        try {
+                            if(null != resultDB){
+                                String ds = resultDB.getDs();
+                                log.info("ResultDB     ds 是：{}",ds);
+                                if (resultDBDao.countPartition(ds) == 0) {
+                                    resultDBDao.createPartition(ds);
+                                    log.info("ResultDB  分区表已经构建 ");
+                                }
+                            }
+
+                        }catch (Exception e){
+
+                            log.warn("ResultDB  分区表创建失败(若为Duplicate partition name可忽略): {}", e.getMessage());
+
+                        }
                         resultDBDao.insert(resultDB);
                         log.info("存量维系回调信息入库结果{}", resultDB);
 
