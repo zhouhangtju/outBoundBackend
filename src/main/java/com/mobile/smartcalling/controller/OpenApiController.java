@@ -79,8 +79,7 @@ public class OpenApiController {
 
 
         boolean phoneExists = redisUtil.isPhoneExists(phoneNum);
-        long end = System.currentTimeMillis();
-        log.info("redis 耗时：{}",end-start);
+//        log.info("redis 耗时：{}秒",(System.currentTimeMillis() - start) / 1000);
 
         if (phoneExists) {
             long ttlSeconds = redisUtil.getPhoneTtl(phoneNum);
@@ -144,8 +143,7 @@ public class OpenApiController {
                     .map(TaskUUIDEnum::getNextTaskId)
                     .orElse("");
             log.info("========================= asyncUploadData phone: {} targetTaskId: {}", phoneStr,targetTaskId);
-            long queryEnd = System.currentTimeMillis();
-            log.info("taskPhoneDao.selectList 耗时：{}",queryEnd -queryStart);
+            log.info("taskPhoneDao.selectList 耗时：{}秒",(System.currentTimeMillis() - queryStart) / 1000);
 
 
             if (taskPhones.size() == 0) {
@@ -170,8 +168,7 @@ public class OpenApiController {
                     redisUtil.markPhoneCalledToday(performanceInfo.getPhoneNum());
                 }
                 taskPhoneDao.insert(phone);
-                long uploadOneEnd = System.currentTimeMillis();
-                log.info("号码第一次拨打 耗时：{}",uploadOneEnd-uploadOneStart);
+                log.info("号码第一次拨打 耗时：{}秒",(System.currentTimeMillis() - uploadOneStart) / 1000);
             } else {
                 long uploadStart = System.currentTimeMillis();
                 //调用号码重置状态接口
@@ -189,12 +186,15 @@ public class OpenApiController {
                     uploadDataService.numberBatchReset(targetTaskId, performanceInfo.getPhoneNum());
                     log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), targetTaskId);
                 }
-                long uploadEnd = System.currentTimeMillis();
-                log.info("异步上传性能数据耗时：{}",uploadEnd-uploadStart);
+                log.info("异步上传性能数据耗时：{}秒",(System.currentTimeMillis() - uploadStart) / 1000);
             }
         } catch (Exception e) {
             // 记录异常但不影响主流程
             log.error("异步上传性能数据失败, phoneNum={}", performanceInfo.getPhoneNum(), e);
         }
     }
+
+
+
+
 }

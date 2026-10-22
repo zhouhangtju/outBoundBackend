@@ -1,7 +1,9 @@
 package com.mobile.smartcalling.entity;
 
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -10,28 +12,34 @@ import java.util.Date;
 @Data
 @TableName("satisfy_result")
 public class ResultDB {
+
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
+
     @TableField("phone_num")
-    String phoneNum;
+    private String phoneNum;
 
     @TableField("customer_name")
-    String customerName;
+    private String customerName;
+
     @TableField("internet_quality_score")
-    String internetQualityScore;
+    private String internetQualityScore;
 
     @TableField("install_score")
-    String installScore;
+    private String installScore;
 
     @TableField("reason")
-    String reason;
+    private String reason;
 
     @TableField("is_home")
-    String isHome;
+    private String isHome;
 
     @TableField("start_time")
-    Date startTime;
+    private Date startTime;
 
     @TableField("is_contact")
-    String isContact;
+    private String isContact;
 
-    String ds;
+    @TableField("ds")
+    private String ds;
 }

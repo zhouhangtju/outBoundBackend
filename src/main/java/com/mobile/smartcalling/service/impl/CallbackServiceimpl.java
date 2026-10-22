@@ -182,25 +182,10 @@ public class CallbackServiceimpl implements ICallbackSevice {
                         //   ResultDB resultDB = new ResultDB();
                         ResultDB resultDB = newStockMaintenanceType(callRecordData);
 
-                        try {
-                            if(null != resultDB){
-                                String ds = resultDB.getDs();
-                                log.info("ResultDB     ds 是：{}",ds);
-                                if (resultDBDao.countPartition(ds) == 0) {
-                                    resultDBDao.createPartition(ds);
-                                    log.info("ResultDB  分区表已经构建 ");
-                                }
-                            }
-
-                        }catch (Exception e){
-
-                            log.warn("ResultDB  分区表创建失败(若为Duplicate partition name可忽略): {}", e.getMessage());
-
-                        }
                         resultDBDao.insert(resultDB);
                         log.info("存量维系回调信息入库结果{}", resultDB);
 
-                        resultDto = newCheckInstallationCompletion(callRecordData);
+                        resultDto = newStockMaintenanceTypeTwo(callRecordData);
                         resultDto.setOrderid(orderId);
                         log.info("存量维系场景结果{}", resultDto);
                         uploadDataService.uploadResult(resultDto, taskStr);
@@ -361,6 +346,80 @@ public class CallbackServiceimpl implements ICallbackSevice {
             log.info("Exception:{}", e);
         } finally {
             return resultDB;
+        }
+    }
+
+    /**
+     * 存量维系回调结果解析
+     *
+     * @param callRecordData
+     * @return RemoteCallResultDto
+     */
+    public RemoteCallResultDto newStockMaintenanceTypeTwo(NewCallbackData.CallRecordData callRecordData) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai")); // 设置为东八区
+        RemoteCallResultDto resultDto = new RemoteCallResultDto();
+        List<NewCallbackData.Tag> tags = callRecordData.getTags();
+        if (tags == null || tags.size() == 0) {
+            if (ObjectUtils.isNotEmpty(callRecordData.getStatus()) && callRecordData.getStatus() == 1) {
+                resultDto.setQ1("接通未评价");
+            }
+            return resultDto;
+        } else {
+            for (int i = 0; i < tags.size(); i++) {
+                NewCallbackData.Tag tag = tags.get(i);
+                String name = tag.getName();
+                String[] split = name.split(":", 2);
+
+                if (split[0].contains("Q1") && !split[0].contains("Q10")) {
+                    resultDto.setQ1(split[1]);
+                }
+                if (split[0].contains("Q2")) {
+                    resultDto.setQ2(split[1]);
+                }
+                if (split[0].contains("Q3")) {
+                    resultDto.setQ3(split[1]);
+                }
+//                if (NodeName.installQ4NodeNames.equals(split[0])) {
+//                    resultDto.setQ4(split[1]);
+//                }
+//                if ("Q4-1".equals(split[0])) {
+//                    resultDto.setQ7(split[1]);
+//                }
+                if (split[0].startsWith("Q4")) {
+                    // 第二步：排除 Q4-1 这个特殊节点（单独处理）
+                    // 匹配 Q4、Q4-2、Q4-3 等所有 Q4 相关的其他节点
+                    resultDto.setQ4(split[1]);
+                }
+                if (split[0].contains("Q5")) {
+                    resultDto.setQ5(split[1]);
+                }
+                if (split[0].contains("Q6")) {
+                    resultDto.setQ6(split[1]);
+                }
+                if (split[0].contains("Q7")) {
+                    resultDto.setQ7(split[1]);
+                }
+                if (split[0].contains("Q8")) {
+                    resultDto.setQ8(split[1]);
+                }
+                if (split[0].contains("Q9")) {
+                    resultDto.setQ9(split[1]);
+                }
+                if (split[0].contains("Q10")) {
+                    resultDto.setQ10(split[1]);
+                }
+                //后处理用户说我满意，要把装机Q3Q4改成10分
+                if (name.contains("改成十分"))
+                {
+                    resultDto.setQ3("10分");
+                    resultDto.setQ4("10分");
+                }
+            }
+            if (ObjectUtils.isNotEmpty(callRecordData.getStatus()) && isAllFieldsNull(resultDto) && callRecordData.getStatus() == 1) {
+                resultDto.setQ1("接通未评价");
+            }
+            return resultDto;
         }
     }
 
