@@ -50,7 +50,7 @@ public class OpenApiController {
     @ApiOperation("接收性能测数据")
     public CallBackResult useCallBack(@RequestBody PerformanceInfo performanceInfo) {
         log.info("接收到性能测数据{}", performanceInfo);
-
+        long start = System.currentTimeMillis();
         // 如果订单号为空，则生成 UUID+时间戳 作为订单号
         if (performanceInfo != null && StrUtil.isBlank(performanceInfo.getOrder())) {
             String generatedOrder = IdUtil.fastSimpleUUID() + System.currentTimeMillis();
@@ -79,6 +79,9 @@ public class OpenApiController {
 
 
         boolean phoneExists = redisUtil.isPhoneExists(phoneNum);
+        long end = System.currentTimeMillis();
+        log.info("redis 耗时：{}",end-start);
+
         if (phoneExists) {
             long ttlSeconds = redisUtil.getPhoneTtl(phoneNum);
             long ttlDays = ttlSeconds / (24 * 3600);
@@ -125,6 +128,8 @@ public class OpenApiController {
 
     public void asyncUploadData(PerformanceInfo performanceInfo) {
         try {
+
+            long queryStart = System.currentTimeMillis();
             TaskUUIDEnum taskUUIDEnum = TaskUUIDEnum.fromTaskName(performanceInfo.getCallScene() + "-" + performanceInfo.getCity());
             LambdaQueryWrapper<TaskPhone> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(TaskPhone::getPhone, performanceInfo.getPhoneNum());
@@ -139,10 +144,12 @@ public class OpenApiController {
                     .map(TaskUUIDEnum::getNextTaskId)
                     .orElse("");
             log.info("========================= asyncUploadData phone: {} targetTaskId: {}", phoneStr,targetTaskId);
-
+            long queryEnd = System.currentTimeMillis();
+            log.info("taskPhoneDao.selectList 耗时：{}",queryEnd -queryStart);
 
 
             if (taskPhones.size() == 0) {
+                long uploadOneStart = System.currentTimeMillis();
                 //号码第一次拨打，调用号码上传接口,并存入数据库
                 TaskPhone phone = new TaskPhone();
                 NewResultRequest newResultRequest = new NewResultRequest();
@@ -163,7 +170,10 @@ public class OpenApiController {
                     redisUtil.markPhoneCalledToday(performanceInfo.getPhoneNum());
                 }
                 taskPhoneDao.insert(phone);
+                long uploadOneEnd = System.currentTimeMillis();
+                log.info("号码第一次拨打 耗时：{}",uploadOneEnd-uploadOneStart);
             } else {
+                long uploadStart = System.currentTimeMillis();
                 //调用号码重置状态接口
                 //判断质差派单场景这个号码是否今天进行过外呼
                 if (performanceInfo.getCallScene().equals("质差派单")) {
@@ -179,6 +189,8 @@ public class OpenApiController {
                     uploadDataService.numberBatchReset(targetTaskId, performanceInfo.getPhoneNum());
                     log.info("异步上传性能数据成功, phoneNum={},taskID={}", performanceInfo.getPhoneNum(), targetTaskId);
                 }
+                long uploadEnd = System.currentTimeMillis();
+                log.info("异步上传性能数据耗时：{}",uploadEnd-uploadStart);
             }
         } catch (Exception e) {
             // 记录异常但不影响主流程
