@@ -129,7 +129,7 @@ public class CsvExportService {
             case SATISFACTION_SURVEY_FOLLOW_UP_DD:
                 return new String[]{
                         "task", "city", "order_id", "customer_account",
-                        "line_status", "call_date", "tag1", "tag3", "tag4", "tag5", "tag7"
+                        "line_status", "call_date", "tag1", "tag3", "tag4", "tag5", "tag7", "phone_num"
                 };
             default:
                 throw new IllegalArgumentException("Unsupported task type: " + taskType);
@@ -185,7 +185,8 @@ public class CsvExportService {
                         record.getTag3(),
                         record.getTag4(),
                         record.getTag5(),
-                        record.getTag7()
+                        record.getTag7(),
+                        record.getPhoneNum()
                 };
             default:
                 throw new IllegalArgumentException("Unsupported task type: " + taskType);
