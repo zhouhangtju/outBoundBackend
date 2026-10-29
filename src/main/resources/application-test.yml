@@ -24,12 +24,14 @@ spring:
       min-idle: 8
       max-wait: 60000
       test-while-idle: true
-      test-on-borrow: false
+      test-on-borrow: true
       test-on-return: false
       validation-query: SELECT 1
-      min-evictable-idle-time-millis: 60000
+      validation-query-timeout: 5
+      min-evictable-idle-time-millis: 300000
       time-between-eviction-runs-millis: 30000
-      keep-alive: true
+      # 避免旧版 keepAlive 重复入池路径；空闲检测及借出检测仍保持开启。
+      keep-alive: false
   # Redis 核心配置
   redis:
     # 服务器地址（单机版），集群/哨兵需单独配置

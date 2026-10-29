@@ -217,7 +217,7 @@ public class OutboundCallListTask {
 
 
     public CallBackResult useCallBackTwo(PerformanceInfo performanceInfo) {
-        log.info("接收到性能测数据{}", performanceInfo);
+        log.info("task  接收到性能测数据{}", performanceInfo);
         long start = System.currentTimeMillis();
         // 如果订单号为空，则生成 UUID+时间戳 作为订单号
         if (performanceInfo != null && StrUtil.isBlank(performanceInfo.getOrder())) {
@@ -256,9 +256,9 @@ public class OutboundCallListTask {
             log.info("该手机号：{}之前回调状态满足部分状态，禁止进行外呼 已经在缓存中,剩余天数：{}", phoneNum, ttlDays);
         } else {
             log.info("该手机号：{}可以进行外呼", phoneNum);
-            // 如果数据有效，异步执行上传逻辑，不等待结果
+            // 当前为同步调用，返回实际处理结果，避免数据库异常被统计为成功。
             if (isValid) {
-                asyncUploadData(performanceInfo);
+                result.setSuccess(asyncUploadData(performanceInfo));
             }
         }
 
@@ -266,7 +266,7 @@ public class OutboundCallListTask {
         return result;
     }
 
-    public void asyncUploadData(PerformanceInfo performanceInfo) {
+    public boolean asyncUploadData(PerformanceInfo performanceInfo) {
         try {
 
             long queryStart = System.currentTimeMillis();
@@ -332,9 +332,11 @@ public class OutboundCallListTask {
                 long uploadEnd = System.currentTimeMillis();
                 log.info("异步上传性能数据耗时：{}",uploadEnd-uploadStart);
             }
+            return true;
         } catch (Exception e) {
-            // 记录异常但不影响主流程
-            log.error("异步上传性能数据失败, phoneNum={}", performanceInfo.getPhoneNum(), e);
+            log.error("异步上传性能数据失败, phoneNum={}",
+                    performanceInfo == null ? null : performanceInfo.getPhoneNum(), e);
+            return false;
         }
     }
 }

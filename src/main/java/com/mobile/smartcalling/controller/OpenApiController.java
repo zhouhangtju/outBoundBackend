@@ -87,9 +87,9 @@ public class OpenApiController {
             log.info("该手机号：{}之前回调状态满足部分状态，禁止进行外呼 已经在缓存中,剩余天数：{}", phoneNum, ttlDays);
         } else {
             log.info("该手机号：{}可以进行外呼", phoneNum);
-            // 如果数据有效，异步执行上传逻辑，不等待结果
+            // 当前为同步调用，返回实际处理结果，避免数据库异常仍返回成功。
             if (isValid) {
-                asyncUploadData(performanceInfo);
+                result.setSuccess(asyncUploadData(performanceInfo));
             }
         }
 
@@ -125,7 +125,7 @@ public class OpenApiController {
     }
 
 
-    public void asyncUploadData(PerformanceInfo performanceInfo) {
+    public boolean asyncUploadData(PerformanceInfo performanceInfo) {
         try {
 
             long queryStart = System.currentTimeMillis();
@@ -188,9 +188,11 @@ public class OpenApiController {
                 }
                 log.info("异步上传性能数据耗时：{}秒",(System.currentTimeMillis() - uploadStart) / 1000);
             }
+            return true;
         } catch (Exception e) {
-            // 记录异常但不影响主流程
-            log.error("异步上传性能数据失败, phoneNum={}", performanceInfo.getPhoneNum(), e);
+            log.error("异步上传性能数据失败, phoneNum={}",
+                    performanceInfo == null ? null : performanceInfo.getPhoneNum(), e);
+            return false;
         }
     }
 

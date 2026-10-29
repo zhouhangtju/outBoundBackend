@@ -1,6 +1,7 @@
 package com.mobile.smartcalling.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import cn.hutool.core.util.DesensitizedUtil;
 import com.mobile.smartcalling.common.CommonBusinessStrEnum;
 import com.mobile.smartcalling.common.TaskTypeEnum;
 import com.mobile.smartcalling.config.ScheduleConfig;
@@ -51,6 +52,9 @@ public class SatisfactionTask {
             List<RemoteCallResult> allData = remoteCallResultDao.selectList(lambdaQueryWrapper);
 
             log.info("查询到{}条数据", allData.size());
+
+
+            allData.forEach(r -> r.setPhoneNum(DesensitizedUtil.mobilePhone(r.getPhoneNum())));
 
 
             if (allData.isEmpty()) {
