@@ -54,13 +54,14 @@ public class SatisfactionTask {
             log.info("查询到{}条数据", allData.size());
 
 
-            allData.forEach(r -> r.setPhoneNum(DesensitizedUtil.mobilePhone(r.getPhoneNum())));
 
 
             if (allData.isEmpty()) {
                 log.info("没有数据需要导出");
                 return;
             }
+            allData.forEach(r -> r.setPhoneNum(DesensitizedUtil.mobilePhone(r.getPhoneNum())));
+
 
             // 按任务类型分组  每个任务类型对应的数据
             Map<String, List<RemoteCallResult>> groupedData = allData.stream()
