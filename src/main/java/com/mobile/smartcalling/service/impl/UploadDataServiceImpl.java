@@ -63,7 +63,7 @@ public class UploadDataServiceImpl implements UploadDataService {
 
         // 构建URI
        // String url = "http://10.76.148.79:36035/trackImportController/saveOutbound";
-        String url = "http://10.76.148.49:36035/trackImportController/saveOutbound";
+        String url = "http://188.109.44.130:8002/cxy/trackImportController/saveOutbound";
         // 发送POST请求
         ResponseEntity<String> response = restTemplate.postForEntity(url, resultRequest, String.class);
         if (response.getStatusCodeValue() == 200) {
