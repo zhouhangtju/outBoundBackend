@@ -17,8 +17,8 @@ ftp:
   host: 10.76.148.39
   port: 21
   username: JIAKE
-  password: J8is_F7n61#12
-  remote-dir: /home/JIAKE/OCP
+  password: D8is_F7n61#15
+  remote-dir: /home/dcpp/JIAKE/OCP
   passive-mode: true
   connect-timeout: 10000
   data-timeout: 10000
